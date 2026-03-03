@@ -16,7 +16,7 @@ import { UserProfile } from '@/components/user-profile'
 
 type AuthView = 'landing' | 'login'
 
-type AppView =
+export type AppView =
   | { type: 'shell'; section: NavSection }
   | { type: 'editor'; quote: Quote }
   | { type: 'pdf'; quote: Quote }
@@ -37,6 +37,7 @@ export default function Home() {
   const handleLoginSuccess = useCallback((loggedUser: AuthUser) => {
     setUser(loggedUser)
     setAppView({ type: 'shell', section: 'overview' })
+    setAuthView('login')
   }, [])
 
   const handleUserUpdate = useCallback((updatedUser: AuthUser) => {

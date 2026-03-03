@@ -1,6 +1,6 @@
 // simple wrapper around the login API that persists a small session blob in localStorage
 
-const AUTH_KEY = 'orcamentos-auth'
+const AUTH_KEY = 'payload-token'
 
 // shape used by the app for display; we map the raw payload user into this
 export interface AuthUser {
@@ -54,14 +54,14 @@ export async function login(
   password: string,
 ): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
   try {
-    const resp = await fetch('/api/auth/login', {
+    const resp = await fetch('/api/users/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     })
 
     const data: ServerLoginResponse = await resp.json()
-    if (resp.ok && data.success && data.user) {
+    if (resp.ok && data.token && data.user) {
       const mapped = mapPayloadUser(data.user)
       if (typeof window !== 'undefined') {
         const authBlob: AuthData = { user: mapped, token: data.token || '' }

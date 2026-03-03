@@ -30,6 +30,7 @@ export function LoginForm({ onSuccess, onBack }: LoginFormProps) {
       // small delay so loading spinner is visible
       await new Promise((r) => setTimeout(r, 300))
       const result = await login(data.email, data.password)
+
       if (result.success && result.user) {
         onSuccess(result.user)
       } else {

@@ -1,0 +1,5 @@
+export { TemplateClassico } from "./template-classico"
+export { TemplateModerno } from "./template-moderno"
+export { TemplateMinimalista } from "./template-minimalista"
+export { TemplateExecutivo } from "./template-executivo"
+export { TemplateColorido } from "./template-colorido"

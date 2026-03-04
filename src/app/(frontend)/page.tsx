@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Quote } from '@/lib/types'
 import { createEmptyQuote, loadQuotes } from '@/lib/quotes'
 import { getLoggedUser, logout, type AuthUser } from '@/lib/auth'
@@ -24,52 +25,29 @@ export type AppView =
 export default function Home() {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [authView, setAuthView] = useState<AuthView>('landing')
-  const [appView, setAppView] = useState<AppView>({ type: 'shell', section: 'overview' })
   const [ready, setReady] = useState(false)
 
-  // Restore session on mount
+  const router = useRouter()
+
+  // restore session
   useEffect(() => {
     const saved = getLoggedUser()
-    if (saved) setUser(saved)
+    if (saved) {
+      setUser(saved)
+      router.replace('/overview')
+    }
     setReady(true)
-  }, [])
+  }, [router])
 
-  const handleLoginSuccess = useCallback((loggedUser: AuthUser) => {
-    setUser(loggedUser)
-    setAppView({ type: 'shell', section: 'overview' })
-    setAuthView('login')
-  }, [])
+  const handleLoginSuccess = useCallback(
+    (loggedUser: AuthUser) => {
+      setUser(loggedUser)
+      router.push('/overview')
+    },
+    [router],
+  )
 
-  const handleUserUpdate = useCallback((updatedUser: AuthUser) => {
-    setUser(updatedUser)
-  }, [])
-
-  const handleLogout = useCallback(() => {
-    logout()
-    setUser(null)
-    setAuthView('landing')
-    setAppView({ type: 'shell', section: 'overview' })
-  }, [])
-
-  const handleEditQuote = useCallback((quote: Quote) => {
-    setAppView({ type: 'editor', quote })
-  }, [])
-
-  const handleExportPdf = useCallback((quote: Quote) => {
-    setAppView({ type: 'pdf', quote })
-  }, [])
-
-  const handleBackToDashboard = useCallback(() => {
-    setAppView({ type: 'shell', section: 'proposals' })
-  }, [])
-
-  const handleNewQuote = useCallback(() => {
-    const current = loadQuotes()
-    const newQuote = createEmptyQuote(current)
-    setAppView({ type: 'editor', quote: newQuote })
-  }, [])
-
-  // Loading state to avoid flash
+  // Loading placeholder
   if (!ready) {
     return (
       <div className="flex h-dvh items-center justify-center bg-background">
@@ -78,7 +56,7 @@ export default function Home() {
     )
   }
 
-  // Not logged in: show landing or login
+  // not logged in
   if (!user) {
     if (authView === 'login') {
       return <LoginForm onSuccess={handleLoginSuccess} onBack={() => setAuthView('landing')} />
@@ -86,50 +64,6 @@ export default function Home() {
     return <LandingPage onLogin={() => setAuthView('login')} />
   }
 
-  // Logged in: full-screen views
-  if (appView.type === 'editor') {
-    return (
-      <QuoteEditor
-        initialQuote={appView.quote}
-        onBack={handleBackToDashboard}
-        onExportPdf={handleExportPdf}
-      />
-    )
-  }
-
-  if (appView.type === 'pdf') {
-    return (
-      <PdfExport
-        quote={appView.quote}
-        onBack={() => setAppView({ type: 'editor', quote: appView.quote })}
-      />
-    )
-  }
-
-  // Logged in: dashboard shell
-  return (
-    <AppShell
-      activeSection={appView.section}
-      onNavigate={(section) => setAppView({ type: 'shell', section })}
-      onNewQuote={handleNewQuote}
-      user={user}
-      onLogout={handleLogout}
-    >
-      {appView.section === 'overview' && (
-        <DashboardOverview
-          onNavigateToProposals={() => setAppView({ type: 'shell', section: 'proposals' })}
-          onEditQuote={handleEditQuote}
-        />
-      )}
-      {appView.section === 'proposals' && (
-        <Dashboard
-          onEditQuote={handleEditQuote}
-          onExportPdf={handleExportPdf}
-          onNewQuote={handleNewQuote}
-        />
-      )}
-      {appView.section === 'settings' && <SettingsPage />}
-      {appView.section === 'profile' && <UserProfile user={user} onUserUpdate={handleUserUpdate} />}
-    </AppShell>
-  )
+  // should never reach here; user is redirected by wrapper
+  return null
 }

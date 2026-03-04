@@ -97,11 +97,11 @@ export function UserProfile({ user, onUserUpdate }: UserProfileProps) {
           <div className="border-b border-border bg-secondary/30 px-5 py-4">
             <div className="flex items-center gap-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
-                {user.avatar}
+                {user?.avatar}
               </div>
               <div>
-                <p className="font-semibold text-foreground">{user.name}</p>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+                <p className="font-semibold text-foreground">{user?.name}</p>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
           </div>
@@ -326,7 +326,7 @@ export function UserProfile({ user, onUserUpdate }: UserProfileProps) {
                 <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                   ID da Conta
                 </p>
-                <p className="mt-0.5 font-mono text-xs text-foreground">{user.id}</p>
+                <p className="mt-0.5 font-mono text-xs text-foreground">{user?.id}</p>
               </div>
               <div className="rounded-lg bg-secondary/50 px-3.5 py-2.5">
                 <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">

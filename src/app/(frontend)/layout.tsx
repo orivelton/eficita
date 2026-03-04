@@ -2,10 +2,11 @@ import type { Metadata, Viewport } from 'next'
 import { DM_Sans, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
+import FrontendWrapper from '@/components/frontend-wrapper'
 import './globals.css'
 
-const _dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
-const _jetBrainsMono = JetBrains_Mono({ subsets: ["latin"] });
+const _dmSans = DM_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
+const _jetBrainsMono = JetBrains_Mono({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Gestor de Orcamentos - Dashboard',
@@ -43,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="pt">
       <body className="font-sans antialiased">
-        {children}
+        <FrontendWrapper>{children}</FrontendWrapper>
         <Toaster richColors position="top-right" />
         <Analytics />
       </body>

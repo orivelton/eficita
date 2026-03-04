@@ -146,14 +146,14 @@ export function AppShell({
             className={`mb-2 flex items-center gap-2.5 rounded-lg px-2 py-2 ${collapsed ? 'justify-center px-0' : ''}`}
           >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">
-              {user.avatar}
+              {user?.avatar}
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-semibold text-sidebar-foreground">
-                  {user.name}
+                  {user?.name}
                 </p>
-                <p className="truncate text-[10px] text-sidebar-muted">{user.company}</p>
+                <p className="truncate text-[10px] text-sidebar-muted">{user?.company}</p>
               </div>
             )}
             {!collapsed && (
@@ -205,14 +205,14 @@ export function AppShell({
           <div className="flex items-center gap-2">
             <NotificationsPanel />
             <div className="hidden items-center gap-2 md:flex">
-              <span className="text-xs text-muted-foreground">{user.name}</span>
+              <span className="text-xs text-muted-foreground">{user?.name}</span>
             </div>
             <button
               onClick={() => onNavigate('profile')}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
               title="Abrir perfil"
             >
-              {user.avatar}
+              {user?.avatar}
             </button>
           </div>
         </header>

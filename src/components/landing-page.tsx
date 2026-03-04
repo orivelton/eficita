@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
   FileText,
   BarChart3,
@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Layers,
   Clock,
-} from "lucide-react"
+  Form,
+} from 'lucide-react'
 
 interface LandingPageProps {
   onLogin: () => void
@@ -26,11 +27,11 @@ export function LandingPage({ onLogin }: LandingPageProps) {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 lg:px-8">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <FileText className="h-4 w-4 text-primary-foreground" />
+              <Form className="h-6 w-6 text-primary-foreground" />
             </div>
             <span className="text-lg font-bold tracking-tight text-foreground">
-              Orcamentos
-              <span className="ml-1 text-primary">Pro</span>
+              Eficita
+              {/* <span className="ml-1 text-primary">Pro</span> */}
             </span>
           </div>
           <nav className="hidden items-center gap-8 md:flex">
@@ -70,7 +71,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
           <div
             className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.07]"
             style={{
-              background: "radial-gradient(circle, var(--primary) 0%, transparent 70%)",
+              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
             }}
           />
         </div>
@@ -81,12 +82,11 @@ export function LandingPage({ onLogin }: LandingPageProps) {
               Crie orcamentos profissionais em minutos
             </div>
             <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight text-foreground md:text-6xl lg:text-7xl">
-              Orcamentos que{" "}
-              <span className="text-primary">convertem</span> clientes
+              Orcamentos que <span className="text-primary">convertem</span> clientes
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
-              A plataforma completa para criar, gerir e acompanhar propostas
-              comerciais. Do rascunho ao PDF profissional em poucos cliques.
+              A plataforma completa para criar, gerir e acompanhar propostas comerciais. Do rascunho
+              ao PDF profissional em poucos cliques.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button size="lg" onClick={onLogin} className="w-full px-8 text-sm sm:w-auto">
@@ -171,10 +171,10 @@ export function LandingPage({ onLogin }: LandingPageProps) {
       <section id="metricas" className="border-y border-border bg-card">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px bg-border md:grid-cols-4">
           {[
-            { value: "10k+", label: "Orcamentos criados" },
-            { value: "98%", label: "Taxa de satisfacao" },
-            { value: "3x", label: "Mais rapido que manual" },
-            { value: "45%", label: "Taxa de conversao media" },
+            { value: '10k+', label: 'Orcamentos criados' },
+            { value: '98%', label: 'Taxa de satisfacao' },
+            { value: '3x', label: 'Mais rapido que manual' },
+            { value: '45%', label: 'Taxa de conversao media' },
           ].map((metric, i) => (
             <div
               key={i}
@@ -183,9 +183,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
               <p className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
                 {metric.value}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-                {metric.label}
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground md:text-sm">{metric.label}</p>
             </div>
           ))}
         </div>
@@ -202,8 +200,8 @@ export function LandingPage({ onLogin }: LandingPageProps) {
               Tudo o que precisa para gerir os seus orcamentos
             </h2>
             <p className="mt-4 text-pretty text-muted-foreground">
-              Ferramentas profissionais pensadas para simplificar o seu
-              dia-a-dia e impressionar os seus clientes.
+              Ferramentas profissionais pensadas para simplificar o seu dia-a-dia e impressionar os
+              seus clientes.
             </p>
           </div>
 
@@ -211,33 +209,33 @@ export function LandingPage({ onLogin }: LandingPageProps) {
             {[
               {
                 icon: Layers,
-                title: "Multi-step intuitivo",
-                desc: "Crie propostas passo a passo: empresa, cliente, servicos e condicoes. Sem confusao.",
+                title: 'Multi-step intuitivo',
+                desc: 'Crie propostas passo a passo: empresa, cliente, servicos e condicoes. Sem confusao.',
               },
               {
                 icon: Users,
-                title: "Catalogo de clientes",
-                desc: "Registe clientes e empresas uma vez, reutilize sempre com auto-preenchimento instantaneo.",
+                title: 'Catalogo de clientes',
+                desc: 'Registe clientes e empresas uma vez, reutilize sempre com auto-preenchimento instantaneo.',
               },
               {
                 icon: Download,
-                title: "Exportacao PDF",
-                desc: "Gere PDFs profissionais com a sua marca, logo e cores personalizadas em segundos.",
+                title: 'Exportacao PDF',
+                desc: 'Gere PDFs profissionais com a sua marca, logo e cores personalizadas em segundos.',
               },
               {
                 icon: BarChart3,
-                title: "Dashboard analitico",
-                desc: "Acompanhe metricas chave: propostas enviadas, aceites, valores totais e taxa de conversao.",
+                title: 'Dashboard analitico',
+                desc: 'Acompanhe metricas chave: propostas enviadas, aceites, valores totais e taxa de conversao.',
               },
               {
                 icon: Clock,
-                title: "Historico de estados",
-                desc: "Rastreie cada proposta desde rascunho ate aceite com timeline completa de alteracoes.",
+                title: 'Historico de estados',
+                desc: 'Rastreie cada proposta desde rascunho ate aceite com timeline completa de alteracoes.',
               },
               {
                 icon: Shield,
-                title: "Templates reutilizaveis",
-                desc: "Crie templates de servicos e condicoes para preencher propostas em segundos.",
+                title: 'Templates reutilizaveis',
+                desc: 'Crie templates de servicos e condicoes para preencher propostas em segundos.',
               },
             ].map((feature, i) => {
               const Icon = feature.icon
@@ -249,12 +247,8 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                   <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/15">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
-                  <h3 className="mb-2 text-sm font-semibold text-foreground">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {feature.desc}
-                  </p>
+                  <h3 className="mb-2 text-sm font-semibold text-foreground">{feature.title}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{feature.desc}</p>
                 </div>
               )
             })}
@@ -277,19 +271,19 @@ export function LandingPage({ onLogin }: LandingPageProps) {
           <div className="grid gap-8 md:grid-cols-3">
             {[
               {
-                step: "01",
-                title: "Configure os seus dados",
-                desc: "Registe a sua empresa, clientes e catalogo de servicos. Faca uma vez, use sempre.",
+                step: '01',
+                title: 'Configure os seus dados',
+                desc: 'Registe a sua empresa, clientes e catalogo de servicos. Faca uma vez, use sempre.',
               },
               {
-                step: "02",
-                title: "Crie a proposta",
-                desc: "Selecione empresa e cliente, adicione servicos e condicoes com o assistente multi-step.",
+                step: '02',
+                title: 'Crie a proposta',
+                desc: 'Selecione empresa e cliente, adicione servicos e condicoes com o assistente multi-step.',
               },
               {
-                step: "03",
-                title: "Exporte e acompanhe",
-                desc: "Gere o PDF profissional, envie ao cliente e acompanhe o estado ate a aceitacao.",
+                step: '03',
+                title: 'Exporte e acompanhe',
+                desc: 'Gere o PDF profissional, envie ao cliente e acompanhe o estado ate a aceitacao.',
               },
             ].map((item, i) => (
               <div key={i} className="relative">
@@ -297,16 +291,10 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
                     {item.step}
                   </span>
-                  {i < 2 && (
-                    <div className="hidden h-px flex-1 bg-border md:block" />
-                  )}
+                  {i < 2 && <div className="hidden h-px flex-1 bg-border md:block" />}
                 </div>
-                <h3 className="mb-2 text-base font-semibold text-foreground">
-                  {item.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {item.desc}
-                </p>
+                <h3 className="mb-2 text-base font-semibold text-foreground">{item.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -322,8 +310,8 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                 Pronto para profissionalizar os seus orcamentos?
               </h2>
               <p className="mx-auto mt-4 max-w-md text-sm text-primary-foreground/80 md:text-base">
-                Junte-se a milhares de profissionais que ja usam o Orcamentos Pro
-                para fechar mais negocios.
+                Junte-se a milhares de profissionais que ja usam o Orcamentos Pro para fechar mais
+                negocios.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button
@@ -337,19 +325,17 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                 </Button>
               </div>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                {[
-                  "Sem cartao de credito",
-                  "Configuracao rapida",
-                  "Suporte incluido",
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-1.5 text-xs text-primary-foreground/70"
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    {item}
-                  </div>
-                ))}
+                {['Sem cartao de credito', 'Configuracao rapida', 'Suporte incluido'].map(
+                  (item, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-1.5 text-xs text-primary-foreground/70"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {item}
+                    </div>
+                  ),
+                )}
               </div>
             </div>
             {/* Decorative circles */}
@@ -366,9 +352,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
               <FileText className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
-            <span className="text-sm font-semibold text-foreground">
-              Orcamentos Pro
-            </span>
+            <span className="text-sm font-semibold text-foreground">Orcamentos Pro</span>
           </div>
           <p className="text-xs text-muted-foreground">
             Aplicacao de demonstracao. Dados ficticios armazenados localmente.

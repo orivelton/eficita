@@ -1,25 +1,25 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useCallback, useRef } from "react"
-import type { SavedCompany } from "@/lib/types"
+import { useState, useEffect, useCallback, useRef } from 'react'
+import type { SavedCompany } from '@/lib/types'
 import {
   loadSavedCompanies,
   addSavedCompany,
   updateSavedCompany,
   deleteSavedCompany,
   generateId,
-} from "@/lib/quotes"
+} from '@/lib/quotes'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,25 +29,25 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Plus, Pencil, Trash2, Building2, Upload, X } from "lucide-react"
-import { toast } from "sonner"
+} from '@/components/ui/alert-dialog'
+import { Plus, Pencil, Trash2, Building2, Upload, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ManageCompaniesProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-function emptyCompanyForm(): Omit<SavedCompany, "id"> {
+function emptyCompanyForm(): Omit<SavedCompany, 'id'> {
   return {
-    name: "",
-    nif: "",
-    address: "",
-    phone: "",
-    email: "",
-    iban: "",
+    name: '',
+    nif: '',
+    address: '',
+    phone: '',
+    email: '',
+    iban: '',
     logo: null,
-    primaryColor: "#1a56db",
+    primaryColor: '#1a56db',
   }
 }
 
@@ -55,12 +55,17 @@ export function ManageCompanies({ open, onOpenChange }: ManageCompaniesProps) {
   const [companies, setCompanies] = useState<SavedCompany[]>([])
   const [editing, setEditing] = useState<SavedCompany | null>(null)
   const [creating, setCreating] = useState(false)
-  const [form, setForm] = useState<Omit<SavedCompany, "id">>(emptyCompanyForm())
+  const [form, setForm] = useState<Omit<SavedCompany, 'id'>>(emptyCompanyForm())
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (open) setCompanies(loadSavedCompanies())
+    if (open) {
+      ;(async () => {
+        const list = await loadSavedCompanies()
+        setCompanies(list)
+      })()
+    }
   }, [open])
 
   const resetForm = useCallback(() => {
@@ -69,19 +74,19 @@ export function ManageCompanies({ open, onOpenChange }: ManageCompaniesProps) {
     setCreating(false)
   }, [])
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!form.name.trim()) {
-      toast.error("O nome da empresa é obrigatório")
+      toast.error('O nome da empresa é obrigatório')
       return
     }
     if (editing) {
-      const updated = updateSavedCompany({ ...form, id: editing.id })
+      const updated = await updateSavedCompany({ ...form, id: editing.id })
       setCompanies(updated)
-      toast.success("Empresa atualizada")
+      toast.success('Empresa atualizada')
     } else {
-      const updated = addSavedCompany(form)
+      const updated = await addSavedCompany(form)
       setCompanies(updated)
-      toast.success("Empresa registada")
+      toast.success('Empresa registada')
     }
     resetForm()
   }, [form, editing, resetForm])
@@ -101,36 +106,39 @@ export function ManageCompanies({ open, onOpenChange }: ManageCompaniesProps) {
     })
   }, [])
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!deleteId) return
-    const updated = deleteSavedCompany(deleteId)
+    const updated = await deleteSavedCompany(deleteId)
     setCompanies(updated)
     setDeleteId(null)
-    toast.success("Empresa eliminada")
+    toast.success('Empresa eliminada')
   }, [deleteId])
 
-  const handleLogoUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!file) return
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error("Logo deve ter no máximo 2MB")
-        return
-      }
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setForm((prev) => ({ ...prev, logo: reader.result as string }))
-      }
-      reader.readAsDataURL(file)
-    },
-    []
-  )
+  const handleLogoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Logo deve ter no máximo 2MB')
+      return
+    }
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setForm((prev) => ({ ...prev, logo: reader.result as string }))
+    }
+    reader.readAsDataURL(file)
+  }, [])
 
   const showForm = creating
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); onOpenChange(v) }}>
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          if (!v) resetForm()
+          onOpenChange(v)
+        }}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -160,7 +168,7 @@ export function ManageCompanies({ open, onOpenChange }: ManageCompaniesProps) {
                         className="absolute -right-2 -top-2 h-5 w-5 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/80"
                         onClick={() => {
                           setForm((prev) => ({ ...prev, logo: null }))
-                          if (fileInputRef.current) fileInputRef.current.value = ""
+                          if (fileInputRef.current) fileInputRef.current.value = ''
                         }}
                       >
                         <X className="h-3 w-3" />
@@ -187,7 +195,9 @@ export function ManageCompanies({ open, onOpenChange }: ManageCompaniesProps) {
                 </div>
                 <div className="flex-1 grid gap-2.5">
                   <div>
-                    <Label className="text-xs">Nome da Empresa <span className="text-destructive">*</span></Label>
+                    <Label className="text-xs">
+                      Nome da Empresa <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       value={form.name}
                       onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
@@ -272,7 +282,7 @@ export function ManageCompanies({ open, onOpenChange }: ManageCompaniesProps) {
                   Cancelar
                 </Button>
                 <Button size="sm" onClick={handleSave}>
-                  {editing ? "Atualizar" : "Registar"}
+                  {editing ? 'Atualizar' : 'Registar'}
                 </Button>
               </div>
             </div>
@@ -291,9 +301,7 @@ export function ManageCompanies({ open, onOpenChange }: ManageCompaniesProps) {
               {companies.length === 0 ? (
                 <div className="flex flex-col items-center py-8 text-center">
                   <Building2 className="h-10 w-10 text-muted-foreground/40" />
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Nenhuma empresa registada.
-                  </p>
+                  <p className="mt-3 text-sm text-muted-foreground">Nenhuma empresa registada.</p>
                   <p className="text-xs text-muted-foreground">
                     Registe uma empresa para auto-preenchimento.
                   </p>
@@ -325,7 +333,7 @@ export function ManageCompanies({ open, onOpenChange }: ManageCompaniesProps) {
                             <p className="truncate text-xs text-muted-foreground">
                               {[company.nif && `NIF: ${company.nif}`, company.address]
                                 .filter(Boolean)
-                                .join(" - ") || "Sem detalhes"}
+                                .join(' - ') || 'Sem detalhes'}
                             </p>
                           </div>
                         </div>

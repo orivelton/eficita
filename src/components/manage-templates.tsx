@@ -1,20 +1,10 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useCallback } from "react"
-import type { NotesTemplate, TemplateCategory } from "@/lib/types"
-import { TEMPLATE_CATEGORIES } from "@/lib/types"
-import {
-  loadTemplates,
-  addTemplate,
-  updateTemplate,
-  deleteTemplate,
-} from "@/lib/quotes"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { useState, useEffect, useCallback } from 'react'
+import type { NotesTemplate, TemplateCategory } from '@/lib/types'
+import { TEMPLATE_CATEGORIES } from '@/lib/types'
+import { loadTemplates, addTemplate, updateTemplate, deleteTemplate } from '@/lib/quotes'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,20 +14,20 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Plus, Pencil, Trash2, FileText, Search, X } from "lucide-react"
-import { toast } from "sonner"
+} from '@/components/ui/select'
+import { Plus, Pencil, Trash2, FileText, Search, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ManageTemplatesProps {
   open: boolean
@@ -47,9 +37,9 @@ interface ManageTemplatesProps {
 const CATEGORIES = Object.keys(TEMPLATE_CATEGORIES) as TemplateCategory[]
 
 const emptyForm = {
-  name: "",
-  content: "",
-  category: "geral" as TemplateCategory,
+  name: '',
+  content: '',
+  category: 'geral' as TemplateCategory,
 }
 
 export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
@@ -58,41 +48,43 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
   const [form, setForm] = useState(emptyForm)
   const [showForm, setShowForm] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [search, setSearch] = useState("")
-  const [filterCategory, setFilterCategory] = useState<TemplateCategory | "all">("all")
+  const [search, setSearch] = useState('')
+  const [filterCategory, setFilterCategory] = useState<TemplateCategory | 'all'>('all')
 
   useEffect(() => {
     if (open) {
-      setTemplates(loadTemplates())
-      setShowForm(false)
-      setEditing(null)
-      setSearch("")
+      ;(async () => {
+        setTemplates(await loadTemplates())
+        setShowForm(false)
+        setEditing(null)
+        setSearch('')
+      })()
     }
   }, [open])
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!form.name.trim()) {
-      toast.error("Nome do template obrigatorio")
+      toast.error('Nome do template obrigatorio')
       return
     }
     if (!form.content.trim()) {
-      toast.error("Conteudo do template obrigatorio")
+      toast.error('Conteudo do template obrigatorio')
       return
     }
 
     if (editing) {
-      const updated = updateTemplate({
+      const updated = await updateTemplate({
         ...editing,
         name: form.name,
         content: form.content,
         category: form.category,
       })
       setTemplates(updated)
-      toast.success("Template atualizado")
+      toast.success('Template atualizado')
     } else {
-      const updated = addTemplate(form)
+      const updated = await addTemplate(form)
       setTemplates(updated)
-      toast.success("Template criado")
+      toast.success('Template criado')
     }
 
     setShowForm(false)
@@ -110,12 +102,12 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
     setShowForm(true)
   }, [])
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!deleteId) return
-    const updated = deleteTemplate(deleteId)
+    const updated = await deleteTemplate(deleteId)
     setTemplates(updated)
     setDeleteId(null)
-    toast.success("Template removido")
+    toast.success('Template removido')
   }, [deleteId])
 
   const handleNew = useCallback(() => {
@@ -129,7 +121,7 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
       !search.trim() ||
       t.name.toLowerCase().includes(search.toLowerCase()) ||
       t.content.toLowerCase().includes(search.toLowerCase())
-    const matchCategory = filterCategory === "all" || t.category === filterCategory
+    const matchCategory = filterCategory === 'all' || t.category === filterCategory
     return matchSearch && matchCategory
   })
 
@@ -148,7 +140,7 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
             <div className="space-y-4 overflow-y-auto px-1">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-foreground">
-                  {editing ? "Editar Template" : "Novo Template"}
+                  {editing ? 'Editar Template' : 'Novo Template'}
                 </p>
                 <Button
                   variant="ghost"
@@ -177,9 +169,7 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
                 <Label className="text-xs font-medium">Categoria</Label>
                 <Select
                   value={form.category}
-                  onValueChange={(v) =>
-                    setForm({ ...form, category: v as TemplateCategory })
-                  }
+                  onValueChange={(v) => setForm({ ...form, category: v as TemplateCategory })}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
@@ -208,7 +198,9 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
                 <Textarea
                   value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
-                  placeholder={"Escreva as observacoes / condicoes...\n\nExemplo:\n- Pagamento: 50% no inicio, 50% na conclusao\n- Prazo de execucao: 15 dias uteis\n- Garantia: 2 anos"}
+                  placeholder={
+                    'Escreva as observacoes / condicoes...\n\nExemplo:\n- Pagamento: 50% no inicio, 50% na conclusao\n- Prazo de execucao: 15 dias uteis\n- Garantia: 2 anos'
+                  }
                   rows={8}
                   className="mt-1 text-sm"
                 />
@@ -226,7 +218,7 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
                   Cancelar
                 </Button>
                 <Button size="sm" onClick={handleSave}>
-                  {editing ? "Guardar Alteracoes" : "Criar Template"}
+                  {editing ? 'Guardar Alteracoes' : 'Criar Template'}
                 </Button>
               </div>
             </div>
@@ -252,11 +244,11 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
               {/* Category filter */}
               <div className="flex flex-wrap gap-1.5">
                 <button
-                  onClick={() => setFilterCategory("all")}
+                  onClick={() => setFilterCategory('all')}
                   className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                    filterCategory === "all"
-                      ? "bg-foreground text-background"
-                      : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                    filterCategory === 'all'
+                      ? 'bg-foreground text-background'
+                      : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
                   }`}
                 >
                   Todos
@@ -272,13 +264,13 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
                       className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors"
                       style={{
                         backgroundColor: filterCategory === cat ? cfg.color : `${cfg.color}15`,
-                        color: filterCategory === cat ? "#fff" : cfg.color,
+                        color: filterCategory === cat ? '#fff' : cfg.color,
                       }}
                     >
                       <span
                         className="h-1.5 w-1.5 rounded-full"
                         style={{
-                          backgroundColor: filterCategory === cat ? "#fff" : cfg.color,
+                          backgroundColor: filterCategory === cat ? '#fff' : cfg.color,
                         }}
                       />
                       {cfg.label}
@@ -295,21 +287,16 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
                     <FileText className="mb-3 h-10 w-10 text-muted-foreground/40" />
                     <p className="text-sm font-medium text-muted-foreground">
                       {templates.length === 0
-                        ? "Nenhum template criado"
-                        : "Nenhum template encontrado"}
+                        ? 'Nenhum template criado'
+                        : 'Nenhum template encontrado'}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground/70">
                       {templates.length === 0
-                        ? "Crie templates para reutilizar observacoes e condicoes"
-                        : "Tente alterar a pesquisa ou filtro"}
+                        ? 'Crie templates para reutilizar observacoes e condicoes'
+                        : 'Tente alterar a pesquisa ou filtro'}
                     </p>
                     {templates.length === 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-4"
-                        onClick={handleNew}
-                      >
+                      <Button variant="outline" size="sm" className="mt-4" onClick={handleNew}>
                         <Plus className="mr-1.5 h-3.5 w-3.5" />
                         Criar primeiro template
                       </Button>
@@ -379,15 +366,12 @@ export function ManageTemplates({ open, onOpenChange }: ManageTemplatesProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover template?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acao nao pode ser revertida. O template sera permanentemente
-              removido.
+              Esta acao nao pode ser revertida. O template sera permanentemente removido.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Remover
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Remover</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

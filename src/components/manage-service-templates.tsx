@@ -1,31 +1,26 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useCallback, useMemo } from "react"
-import type { ServiceTemplate, ServiceCategory } from "@/lib/types"
-import { SERVICE_CATEGORIES, UNIT_OPTIONS, VAT_OPTIONS } from "@/lib/types"
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import type { ServiceTemplate, ServiceCategory } from '@/lib/types'
+import { SERVICE_CATEGORIES, UNIT_OPTIONS, VAT_OPTIONS } from '@/lib/types'
 import {
   loadServiceTemplates,
   addServiceTemplate,
   updateServiceTemplate,
   deleteServiceTemplate,
   formatCurrency,
-} from "@/lib/quotes"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from '@/lib/quotes'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/select'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,9 +30,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Plus, Pencil, Trash2, Search, Wrench } from "lucide-react"
-import { toast } from "sonner"
+} from '@/components/ui/alert-dialog'
+import { Plus, Pencil, Trash2, Search, Wrench } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ManageServiceTemplatesProps {
   open: boolean
@@ -45,28 +40,29 @@ interface ManageServiceTemplatesProps {
 }
 
 const emptyForm = {
-  name: "",
-  description: "",
-  category: "outro" as ServiceCategory,
-  unit: "un",
+  name: '',
+  description: '',
+  category: 'outro' as ServiceCategory,
+  unit: 'un',
   unitPrice: 0,
   vatPercentage: 23,
 }
 
-export function ManageServiceTemplates({
-  open,
-  onOpenChange,
-}: ManageServiceTemplatesProps) {
+export function ManageServiceTemplates({ open, onOpenChange }: ManageServiceTemplatesProps) {
   const [templates, setTemplates] = useState<ServiceTemplate[]>([])
-  const [search, setSearch] = useState("")
-  const [catFilter, setCatFilter] = useState<ServiceCategory | "all">("all")
+  const [search, setSearch] = useState('')
+  const [catFilter, setCatFilter] = useState<ServiceCategory | 'all'>('all')
   const [editing, setEditing] = useState<ServiceTemplate | null>(null)
   const [isNew, setIsNew] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (open) setTemplates(loadServiceTemplates())
+    if (open) {
+      ;(async () => {
+        setTemplates(await loadServiceTemplates())
+      })()
+    }
   }, [open])
 
   const filtered = useMemo(() => {
@@ -74,12 +70,10 @@ export function ManageServiceTemplates({
     if (search.trim()) {
       const term = search.toLowerCase()
       result = result.filter(
-        (t) =>
-          t.name.toLowerCase().includes(term) ||
-          t.description.toLowerCase().includes(term)
+        (t) => t.name.toLowerCase().includes(term) || t.description.toLowerCase().includes(term),
       )
     }
-    if (catFilter !== "all") {
+    if (catFilter !== 'all') {
       result = result.filter((t) => t.category === catFilter)
     }
     return result
@@ -110,30 +104,30 @@ export function ManageServiceTemplates({
     setForm(emptyForm)
   }, [])
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!form.name.trim()) {
-      toast.error("Nome do servico obrigatorio")
+      toast.error('Nome do servico obrigatorio')
       return
     }
     if (isNew) {
-      setTemplates(addServiceTemplate(form))
-      toast.success("Servico adicionado")
+      setTemplates(await addServiceTemplate(form))
+      toast.success('Servico adicionado')
     } else if (editing) {
       setTemplates(
-        updateServiceTemplate({
+        await updateServiceTemplate({
           ...editing,
           ...form,
-        })
+        }),
       )
-      toast.success("Servico atualizado")
+      toast.success('Servico atualizado')
     }
     cancelEdit()
   }, [form, isNew, editing, cancelEdit])
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!deleteId) return
-    setTemplates(deleteServiceTemplate(deleteId))
-    toast.success("Servico removido")
+    setTemplates(await deleteServiceTemplate(deleteId))
+    toast.success('Servico removido')
     setDeleteId(null)
   }, [deleteId])
 
@@ -162,16 +156,14 @@ export function ManageServiceTemplates({
             {showForm ? (
               <div className="space-y-4 p-5">
                 <p className="text-sm font-semibold text-foreground">
-                  {isNew ? "Novo Servico" : "Editar Servico"}
+                  {isNew ? 'Novo Servico' : 'Editar Servico'}
                 </p>
 
                 <div>
                   <Label className="text-xs">Nome do servico *</Label>
                   <Input
                     value={form.name}
-                    onChange={(e) =>
-                      setForm({ ...form, name: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="ex: Pintura interior de parede"
                     className="mt-1"
                   />
@@ -181,9 +173,7 @@ export function ManageServiceTemplates({
                   <Label className="text-xs">Descricao</Label>
                   <Input
                     value={form.description}
-                    onChange={(e) =>
-                      setForm({ ...form, description: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
                     placeholder="Descricao opcional do servico"
                     className="mt-1"
                   />
@@ -193,17 +183,13 @@ export function ManageServiceTemplates({
                   <Label className="text-xs">Categoria</Label>
                   <Select
                     value={form.category}
-                    onValueChange={(v) =>
-                      setForm({ ...form, category: v as ServiceCategory })
-                    }
+                    onValueChange={(v) => setForm({ ...form, category: v as ServiceCategory })}
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {(
-                        Object.keys(SERVICE_CATEGORIES) as ServiceCategory[]
-                      ).map((cat) => {
+                      {(Object.keys(SERVICE_CATEGORIES) as ServiceCategory[]).map((cat) => {
                         const cfg = SERVICE_CATEGORIES[cat]
                         return (
                           <SelectItem key={cat} value={cat}>
@@ -224,10 +210,7 @@ export function ManageServiceTemplates({
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <Label className="text-xs">Unidade</Label>
-                    <Select
-                      value={form.unit}
-                      onValueChange={(v) => setForm({ ...form, unit: v })}
-                    >
+                    <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v })}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
@@ -247,7 +230,7 @@ export function ManageServiceTemplates({
                       type="number"
                       min={0}
                       step="any"
-                      value={form.unitPrice || ""}
+                      value={form.unitPrice || ''}
                       onChange={(e) =>
                         setForm({
                           ...form,
@@ -262,9 +245,7 @@ export function ManageServiceTemplates({
                     <Label className="text-xs">IVA</Label>
                     <Select
                       value={String(form.vatPercentage)}
-                      onValueChange={(v) =>
-                        setForm({ ...form, vatPercentage: parseInt(v) })
-                      }
+                      onValueChange={(v) => setForm({ ...form, vatPercentage: parseInt(v) })}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -285,7 +266,7 @@ export function ManageServiceTemplates({
                     Cancelar
                   </Button>
                   <Button size="sm" onClick={handleSave}>
-                    {isNew ? "Adicionar" : "Guardar"}
+                    {isNew ? 'Adicionar' : 'Guardar'}
                   </Button>
                 </div>
               </div>
@@ -304,18 +285,14 @@ export function ManageServiceTemplates({
                   </div>
                   <Select
                     value={catFilter}
-                    onValueChange={(v) =>
-                      setCatFilter(v as ServiceCategory | "all")
-                    }
+                    onValueChange={(v) => setCatFilter(v as ServiceCategory | 'all')}
                   >
                     <SelectTrigger className="w-[140px] text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas</SelectItem>
-                      {(
-                        Object.keys(SERVICE_CATEGORIES) as ServiceCategory[]
-                      ).map((cat) => (
+                      {(Object.keys(SERVICE_CATEGORIES) as ServiceCategory[]).map((cat) => (
                         <SelectItem key={cat} value={cat}>
                           {SERVICE_CATEGORIES[cat].label}
                         </SelectItem>
@@ -330,15 +307,11 @@ export function ManageServiceTemplates({
                     <Wrench className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
                     <p className="text-sm text-muted-foreground">
                       {templates.length === 0
-                        ? "Nenhum servico registado"
-                        : "Nenhum servico encontrado"}
+                        ? 'Nenhum servico registado'
+                        : 'Nenhum servico encontrado'}
                     </p>
                     {templates.length === 0 && (
-                      <Button
-                        size="sm"
-                        className="mt-3"
-                        onClick={startNew}
-                      >
+                      <Button size="sm" className="mt-3" onClick={startNew}>
                         <Plus className="mr-1.5 h-3.5 w-3.5" />
                         Criar primeiro servico
                       </Button>
@@ -359,10 +332,7 @@ export function ManageServiceTemplates({
                               backgroundColor: `${catCfg.color}12`,
                             }}
                           >
-                            <Wrench
-                              className="h-4 w-4"
-                              style={{ color: catCfg.color }}
-                            />
+                            <Wrench className="h-4 w-4" style={{ color: catCfg.color }} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
@@ -380,8 +350,7 @@ export function ManageServiceTemplates({
                               </span>
                             </div>
                             <p className="truncate text-xs text-muted-foreground">
-                              {formatCurrency(t.unitPrice)}/{t.unit} · IVA{" "}
-                              {t.vatPercentage}%
+                              {formatCurrency(t.unitPrice)}/{t.unit} · IVA {t.vatPercentage}%
                               {t.description && ` · ${t.description}`}
                             </p>
                           </div>
@@ -414,10 +383,7 @@ export function ManageServiceTemplates({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteId}
-        onOpenChange={(o) => !o && setDeleteId(null)}
-      >
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remover servico?</AlertDialogTitle>
@@ -427,9 +393,7 @@ export function ManageServiceTemplates({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Remover
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Remover</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -13,9 +13,11 @@ export default function PdfPage() {
 
   useEffect(() => {
     if (!id) return
-    const all = loadQuotes()
-    const found = all.find((q) => q.id === id)
-    if (found) setQuote(found)
+    ;(async () => {
+      const all = await loadQuotes()
+      const found = all.find((q) => q.id === id)
+      if (found) setQuote(found)
+    })()
   }, [id])
 
   if (!quote) return null

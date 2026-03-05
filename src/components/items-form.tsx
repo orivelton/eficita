@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react"
-import type { QuoteItem, ServiceTemplate, ServiceCategory } from "@/lib/types"
-import { UNIT_OPTIONS, VAT_OPTIONS, SERVICE_CATEGORIES } from "@/lib/types"
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import type { QuoteItem, ServiceTemplate, ServiceCategory } from '@/lib/types'
+import { UNIT_OPTIONS, VAT_OPTIONS, SERVICE_CATEGORIES } from '@/lib/types'
 import {
   createEmptyItem,
   calculateItemTotal,
@@ -13,20 +13,30 @@ import {
   loadServiceTemplates,
   serviceTemplateToItem,
   updateServiceTemplate,
-} from "@/lib/quotes"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+} from '@/lib/quotes'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Plus, Trash2, Search, Wrench, ChevronDown, ChevronUp, Pencil, X, GripVertical } from "lucide-react"
-import type { ValidationErrors } from "@/lib/quotes"
-import { toast } from "sonner"
+} from '@/components/ui/select'
+import {
+  Plus,
+  Trash2,
+  Search,
+  Wrench,
+  ChevronDown,
+  ChevronUp,
+  Pencil,
+  X,
+  GripVertical,
+} from 'lucide-react'
+import type { ValidationErrors } from '@/lib/quotes'
+import { toast } from 'sonner'
 
 interface ItemsFormProps {
   items: QuoteItem[]
@@ -37,20 +47,22 @@ interface ItemsFormProps {
 export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
   const [serviceTemplates, setServiceTemplates] = useState<ServiceTemplate[]>([])
   const [showCatalog, setShowCatalog] = useState(true)
-  const [catalogSearch, setCatalogSearch] = useState("")
-  const [catalogFilter, setCatalogFilter] = useState<ServiceCategory | "all">("all")
+  const [catalogSearch, setCatalogSearch] = useState('')
+  const [catalogFilter, setCatalogFilter] = useState<ServiceCategory | 'all'>('all')
   const [editingService, setEditingService] = useState<ServiceTemplate | null>(null)
   const [editForm, setEditForm] = useState({
-    name: "",
-    description: "",
-    category: "outro" as ServiceCategory,
-    unit: "un",
+    name: '',
+    description: '',
+    category: 'outro' as ServiceCategory,
+    unit: 'un',
     unitPrice: 0,
     vatPercentage: 23,
   })
 
   useEffect(() => {
-    setServiceTemplates(loadServiceTemplates())
+    ;(async () => {
+      setServiceTemplates(await loadServiceTemplates())
+    })()
   }, [])
 
   const filteredServices = useMemo(() => {
@@ -58,12 +70,10 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
     if (catalogSearch.trim()) {
       const term = catalogSearch.toLowerCase()
       result = result.filter(
-        (t) =>
-          t.name.toLowerCase().includes(term) ||
-          t.description.toLowerCase().includes(term)
+        (t) => t.name.toLowerCase().includes(term) || t.description.toLowerCase().includes(term),
       )
     }
-    if (catalogFilter !== "all") {
+    if (catalogFilter !== 'all') {
       result = result.filter((t) => t.category === catalogFilter)
     }
     return result
@@ -71,13 +81,9 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
 
   const updateItem = useCallback(
     (id: string, field: keyof QuoteItem, value: string | number) => {
-      onChange(
-        items.map((item) =>
-          item.id === id ? { ...item, [field]: value } : item
-        )
-      )
+      onChange(items.map((item) => (item.id === id ? { ...item, [field]: value } : item)))
     },
-    [items, onChange]
+    [items, onChange],
   )
 
   const addItem = useCallback(() => {
@@ -89,7 +95,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
       if (items.length <= 1) return
       onChange(items.filter((item) => item.id !== id))
     },
-    [items, onChange]
+    [items, onChange],
   )
 
   const handleAddFromTemplate = useCallback(
@@ -98,7 +104,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
       onChange([...items, newItem])
       toast.success(`"${template.name}" adicionado`)
     },
-    [items, onChange]
+    [items, onChange],
   )
 
   const handleStartEditService = useCallback((t: ServiceTemplate) => {
@@ -113,50 +119,44 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
     })
   }, [])
 
-  const handleSaveEditService = useCallback(() => {
+  const handleSaveEditService = useCallback(async () => {
     if (!editingService) return
     if (!editForm.name.trim()) {
-      toast.error("Nome obrigatorio")
+      toast.error('Nome obrigatorio')
       return
     }
-    const updated = updateServiceTemplate({
+    const updated = await updateServiceTemplate({
       ...editingService,
       ...editForm,
     })
     setServiceTemplates(updated)
     setEditingService(null)
-    toast.success("Servico atualizado")
+    toast.success('Servico atualizado')
   }, [editingService, editForm])
 
   // Drag and drop
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
-  const [dragOverPosition, setDragOverPosition] = useState<"above" | "below" | null>(null)
+  const [dragOverPosition, setDragOverPosition] = useState<'above' | 'below' | null>(null)
   const dragCounterRef = useRef<Record<string, number>>({})
 
-  const handleDragStart = useCallback(
-    (e: React.DragEvent<HTMLDivElement>, itemId: string) => {
-      setDraggedId(itemId)
-      e.dataTransfer.effectAllowed = "move"
-      e.dataTransfer.setData("text/plain", itemId)
-      const el = e.currentTarget
-      requestAnimationFrame(() => {
-        el.style.opacity = "0.4"
-      })
-    },
-    []
-  )
+  const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, itemId: string) => {
+    setDraggedId(itemId)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', itemId)
+    const el = e.currentTarget
+    requestAnimationFrame(() => {
+      el.style.opacity = '0.4'
+    })
+  }, [])
 
-  const handleDragEnd = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.currentTarget.style.opacity = "1"
-      setDraggedId(null)
-      setDragOverId(null)
-      setDragOverPosition(null)
-      dragCounterRef.current = {}
-    },
-    []
-  )
+  const handleDragEnd = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.style.opacity = '1'
+    setDraggedId(null)
+    setDragOverId(null)
+    setDragOverPosition(null)
+    dragCounterRef.current = {}
+  }, [])
 
   const handleDragEnter = useCallback(
     (e: React.DragEvent<HTMLDivElement>, itemId: string) => {
@@ -166,7 +166,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
         setDragOverId(itemId)
       }
     },
-    [draggedId]
+    [draggedId],
   )
 
   const handleDragLeave = useCallback(
@@ -181,20 +181,20 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
         }
       }
     },
-    [dragOverId]
+    [dragOverId],
   )
 
   const handleDragOver = useCallback(
     (e: React.DragEvent<HTMLDivElement>, itemId: string) => {
       e.preventDefault()
-      e.dataTransfer.dropEffect = "move"
+      e.dataTransfer.dropEffect = 'move'
       if (itemId === draggedId) return
       const rect = e.currentTarget.getBoundingClientRect()
       const midY = rect.top + rect.height / 2
-      setDragOverPosition(e.clientY < midY ? "above" : "below")
+      setDragOverPosition(e.clientY < midY ? 'above' : 'below')
       setDragOverId(itemId)
     },
-    [draggedId]
+    [draggedId],
   )
 
   const handleDrop = useCallback(
@@ -208,7 +208,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
       const newItems = [...items]
       const [moved] = newItems.splice(fromIndex, 1)
       let insertAt = toIndex
-      if (dragOverPosition === "below") {
+      if (dragOverPosition === 'below') {
         insertAt = fromIndex < toIndex ? toIndex : toIndex + 1
       } else {
         insertAt = fromIndex < toIndex ? toIndex - 1 : toIndex
@@ -222,14 +222,12 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
       setDragOverPosition(null)
       dragCounterRef.current = {}
     },
-    [draggedId, dragOverPosition, items, onChange]
+    [draggedId, dragOverPosition, items, onChange],
   )
 
   return (
     <div className="grid gap-4">
-      {errors?.items && (
-        <p className="text-xs text-destructive">{errors.items}</p>
-      )}
+      {errors?.items && <p className="text-xs text-destructive">{errors.items}</p>}
 
       {/* Service templates catalog */}
       {serviceTemplates.length > 0 && (
@@ -259,9 +257,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
               {editingService ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-foreground">
-                      Editar servico
-                    </p>
+                    <p className="text-xs font-semibold text-foreground">Editar servico</p>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -273,17 +269,13 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                   </div>
                   <Input
                     value={editForm.name}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, name: e.target.value })
-                    }
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                     placeholder="Nome do servico"
                     className="text-sm"
                   />
                   <Input
                     value={editForm.description}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, description: e.target.value })
-                    }
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                     placeholder="Descricao"
                     className="text-sm"
                   />
@@ -303,9 +295,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {(
-                            Object.keys(SERVICE_CATEGORIES) as ServiceCategory[]
-                          ).map((cat) => (
+                          {(Object.keys(SERVICE_CATEGORIES) as ServiceCategory[]).map((cat) => (
                             <SelectItem key={cat} value={cat}>
                               {SERVICE_CATEGORIES[cat].label}
                             </SelectItem>
@@ -317,9 +307,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                       <Label className="text-[10px]">Unidade</Label>
                       <Select
                         value={editForm.unit}
-                        onValueChange={(v) =>
-                          setEditForm({ ...editForm, unit: v })
-                        }
+                        onValueChange={(v) => setEditForm({ ...editForm, unit: v })}
                       >
                         <SelectTrigger className="h-8 text-xs">
                           <SelectValue />
@@ -341,7 +329,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                         type="number"
                         min={0}
                         step="any"
-                        value={editForm.unitPrice || ""}
+                        value={editForm.unitPrice || ''}
                         onChange={(e) =>
                           setEditForm({
                             ...editForm,
@@ -376,11 +364,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                     </div>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingService(null)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setEditingService(null)}>
                       Cancelar
                     </Button>
                     <Button size="sm" onClick={handleSaveEditService}>
@@ -403,18 +387,14 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                     </div>
                     <Select
                       value={catalogFilter}
-                      onValueChange={(v) =>
-                        setCatalogFilter(v as ServiceCategory | "all")
-                      }
+                      onValueChange={(v) => setCatalogFilter(v as ServiceCategory | 'all')}
                     >
                       <SelectTrigger className="h-8 w-[120px] text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todas</SelectItem>
-                        {(
-                          Object.keys(SERVICE_CATEGORIES) as ServiceCategory[]
-                        ).map((cat) => (
+                        {(Object.keys(SERVICE_CATEGORIES) as ServiceCategory[]).map((cat) => (
                           <SelectItem key={cat} value={cat}>
                             {SERVICE_CATEGORIES[cat].label}
                           </SelectItem>
@@ -443,10 +423,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                                 backgroundColor: `${catCfg.color}12`,
                               }}
                             >
-                              <Wrench
-                                className="h-3.5 w-3.5"
-                                style={{ color: catCfg.color }}
-                              />
+                              <Wrench className="h-3.5 w-3.5" style={{ color: catCfg.color }} />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5">
@@ -464,8 +441,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                                 </span>
                               </div>
                               <p className="truncate text-[10px] text-muted-foreground">
-                                {formatCurrency(t.unitPrice)}/{t.unit} · IVA{" "}
-                                {t.vatPercentage}%
+                                {formatCurrency(t.unitPrice)}/{t.unit} · IVA {t.vatPercentage}%
                               </p>
                             </div>
                             <div className="flex shrink-0 items-center gap-1">
@@ -515,17 +491,17 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
             onDrop={(e) => handleDrop(e, item.id)}
             className={`relative rounded-lg border bg-secondary/30 p-3 transition-all ${
               draggedId === item.id
-                ? "border-primary/40 opacity-40"
+                ? 'border-primary/40 opacity-40'
                 : isOver
-                  ? "border-primary"
-                  : "border-border"
+                  ? 'border-primary'
+                  : 'border-border'
             }`}
           >
             {/* Drop indicator line */}
-            {isOver && dragOverPosition === "above" && (
+            {isOver && dragOverPosition === 'above' && (
               <div className="absolute -top-[3px] left-2 right-2 h-[3px] rounded-full bg-primary" />
             )}
-            {isOver && dragOverPosition === "below" && (
+            {isOver && dragOverPosition === 'below' && (
               <div className="absolute -bottom-[3px] left-2 right-2 h-[3px] rounded-full bg-primary" />
             )}
 
@@ -538,9 +514,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                 >
                   <GripVertical className="h-4 w-4" />
                 </div>
-                <span className="text-xs font-medium text-muted-foreground">
-                  Item {index + 1}
-                </span>
+                <span className="text-xs font-medium text-muted-foreground">Item {index + 1}</span>
               </div>
               <Button
                 type="button"
@@ -562,18 +536,12 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                 </Label>
                 <Input
                   value={item.serviceName}
-                  onChange={(e) =>
-                    updateItem(item.id, "serviceName", e.target.value)
-                  }
+                  onChange={(e) => updateItem(item.id, 'serviceName', e.target.value)}
                   placeholder="Nome do servico"
-                  className={`mt-1 text-sm ${
-                    itemErr?.name ? "border-destructive" : ""
-                  }`}
+                  className={`mt-1 text-sm ${itemErr?.name ? 'border-destructive' : ''}`}
                 />
                 {itemErr?.name && (
-                  <p className="mt-0.5 text-[10px] text-destructive">
-                    {itemErr.name}
-                  </p>
+                  <p className="mt-0.5 text-[10px] text-destructive">{itemErr.name}</p>
                 )}
               </div>
 
@@ -581,9 +549,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                 <Label className="text-xs">Descricao</Label>
                 <Input
                   value={item.description}
-                  onChange={(e) =>
-                    updateItem(item.id, "description", e.target.value)
-                  }
+                  onChange={(e) => updateItem(item.id, 'description', e.target.value)}
                   placeholder="Descricao opcional"
                   className="mt-1 text-sm"
                 />
@@ -596,22 +562,14 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                     type="number"
                     min={0}
                     step="any"
-                    value={item.quantity || ""}
+                    value={item.quantity || ''}
                     onChange={(e) =>
-                      updateItem(
-                        item.id,
-                        "quantity",
-                        parseFloat(e.target.value) || 0
-                      )
+                      updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)
                     }
-                    className={`mt-1 text-sm ${
-                      itemErr?.quantity ? "border-destructive" : ""
-                    }`}
+                    className={`mt-1 text-sm ${itemErr?.quantity ? 'border-destructive' : ''}`}
                   />
                   {itemErr?.quantity && (
-                    <p className="mt-0.5 text-[10px] text-destructive">
-                      {itemErr.quantity}
-                    </p>
+                    <p className="mt-0.5 text-[10px] text-destructive">{itemErr.quantity}</p>
                   )}
                 </div>
 
@@ -619,7 +577,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                   <Label className="text-xs">Unidade</Label>
                   <Select
                     value={item.unit}
-                    onValueChange={(val) => updateItem(item.id, "unit", val)}
+                    onValueChange={(val) => updateItem(item.id, 'unit', val)}
                   >
                     <SelectTrigger className="mt-1 text-sm">
                       <SelectValue />
@@ -640,22 +598,14 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                     type="number"
                     min={0}
                     step="any"
-                    value={item.unitPrice || ""}
+                    value={item.unitPrice || ''}
                     onChange={(e) =>
-                      updateItem(
-                        item.id,
-                        "unitPrice",
-                        parseFloat(e.target.value) || 0
-                      )
+                      updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)
                     }
-                    className={`mt-1 text-sm ${
-                      itemErr?.price ? "border-destructive" : ""
-                    }`}
+                    className={`mt-1 text-sm ${itemErr?.price ? 'border-destructive' : ''}`}
                   />
                   {itemErr?.price && (
-                    <p className="mt-0.5 text-[10px] text-destructive">
-                      {itemErr.price}
-                    </p>
+                    <p className="mt-0.5 text-[10px] text-destructive">{itemErr.price}</p>
                   )}
                 </div>
 
@@ -663,9 +613,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
                   <Label className="text-xs">IVA</Label>
                   <Select
                     value={String(item.vatPercentage)}
-                    onValueChange={(val) =>
-                      updateItem(item.id, "vatPercentage", parseInt(val))
-                    }
+                    onValueChange={(val) => updateItem(item.id, 'vatPercentage', parseInt(val))}
                   >
                     <SelectTrigger className="mt-1 text-sm">
                       <SelectValue />
@@ -692,13 +640,7 @@ export function ItemsForm({ items, onChange, errors }: ItemsFormProps) {
         )
       })}
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="w-full"
-        onClick={addItem}
-      >
+      <Button type="button" variant="outline" size="sm" className="w-full" onClick={addItem}>
         <Plus className="mr-1.5 h-4 w-4" />
         Adicionar Item Manualmente
       </Button>

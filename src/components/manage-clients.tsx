@@ -1,24 +1,24 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useCallback } from "react"
-import type { SavedClient } from "@/lib/types"
+import { useState, useEffect, useCallback } from 'react'
+import type { SavedClient } from '@/lib/types'
 import {
   loadSavedClients,
   addSavedClient,
   updateSavedClient,
   deleteSavedClient,
-} from "@/lib/quotes"
+} from '@/lib/quotes'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,22 +28,22 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Plus, Pencil, Trash2, Users } from "lucide-react"
-import { toast } from "sonner"
+} from '@/components/ui/alert-dialog'
+import { Plus, Pencil, Trash2, Users } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ManageClientsProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-function emptyClientForm(): Omit<SavedClient, "id"> {
+function emptyClientForm(): Omit<SavedClient, 'id'> {
   return {
-    name: "",
-    nif: "",
-    address: "",
-    phone: "",
-    email: "",
+    name: '',
+    nif: '',
+    address: '',
+    phone: '',
+    email: '',
   }
 }
 
@@ -51,11 +51,16 @@ export function ManageClients({ open, onOpenChange }: ManageClientsProps) {
   const [clients, setClients] = useState<SavedClient[]>([])
   const [editing, setEditing] = useState<SavedClient | null>(null)
   const [creating, setCreating] = useState(false)
-  const [form, setForm] = useState<Omit<SavedClient, "id">>(emptyClientForm())
+  const [form, setForm] = useState<Omit<SavedClient, 'id'>>(emptyClientForm())
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (open) setClients(loadSavedClients())
+    if (open) {
+      ;(async () => {
+        const list = await loadSavedClients()
+        setClients(list)
+      })()
+    }
   }, [open])
 
   const resetForm = useCallback(() => {
@@ -64,19 +69,19 @@ export function ManageClients({ open, onOpenChange }: ManageClientsProps) {
     setCreating(false)
   }, [])
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!form.name.trim()) {
-      toast.error("O nome do cliente é obrigatório")
+      toast.error('O nome do cliente é obrigatório')
       return
     }
     if (editing) {
-      const updated = updateSavedClient({ ...form, id: editing.id })
+      const updated = await updateSavedClient({ ...form, id: editing.id })
       setClients(updated)
-      toast.success("Cliente atualizado")
+      toast.success('Cliente atualizado')
     } else {
-      const updated = addSavedClient(form)
+      const updated = await addSavedClient(form)
       setClients(updated)
-      toast.success("Cliente registado")
+      toast.success('Cliente registado')
     }
     resetForm()
   }, [form, editing, resetForm])
@@ -93,19 +98,25 @@ export function ManageClients({ open, onOpenChange }: ManageClientsProps) {
     })
   }, [])
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!deleteId) return
-    const updated = deleteSavedClient(deleteId)
+    const updated = await deleteSavedClient(deleteId)
     setClients(updated)
     setDeleteId(null)
-    toast.success("Cliente eliminado")
+    toast.success('Cliente eliminado')
   }, [deleteId])
 
   const showForm = creating
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); onOpenChange(v) }}>
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          if (!v) resetForm()
+          onOpenChange(v)
+        }}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -120,7 +131,9 @@ export function ManageClients({ open, onOpenChange }: ManageClientsProps) {
           {showForm ? (
             <div className="grid gap-3">
               <div>
-                <Label className="text-xs">Nome do Cliente <span className="text-destructive">*</span></Label>
+                <Label className="text-xs">
+                  Nome do Cliente <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   value={form.name}
                   onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
@@ -176,7 +189,7 @@ export function ManageClients({ open, onOpenChange }: ManageClientsProps) {
                   Cancelar
                 </Button>
                 <Button size="sm" onClick={handleSave}>
-                  {editing ? "Atualizar" : "Registar"}
+                  {editing ? 'Atualizar' : 'Registar'}
                 </Button>
               </div>
             </div>
@@ -195,9 +208,7 @@ export function ManageClients({ open, onOpenChange }: ManageClientsProps) {
               {clients.length === 0 ? (
                 <div className="flex flex-col items-center py-8 text-center">
                   <Users className="h-10 w-10 text-muted-foreground/40" />
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Nenhum cliente registado.
-                  </p>
+                  <p className="mt-3 text-sm text-muted-foreground">Nenhum cliente registado.</p>
                   <p className="text-xs text-muted-foreground">
                     Registe um cliente para auto-preenchimento.
                   </p>
@@ -217,7 +228,7 @@ export function ManageClients({ open, onOpenChange }: ManageClientsProps) {
                           <p className="truncate text-xs text-muted-foreground">
                             {[client.nif && `NIF: ${client.nif}`, client.address]
                               .filter(Boolean)
-                              .join(" - ") || "Sem detalhes"}
+                              .join(' - ') || 'Sem detalhes'}
                           </p>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-2">

@@ -69,6 +69,13 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    companies: Company;
+    clients: Client;
+    quotes: Quote;
+    'notes-templates': NotesTemplate;
+    'service-templates': ServiceTemplate;
+    settings: Setting;
+    notifications: Notification;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +85,13 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    companies: CompaniesSelect<false> | CompaniesSelect<true>;
+    clients: ClientsSelect<false> | ClientsSelect<true>;
+    quotes: QuotesSelect<false> | QuotesSelect<true>;
+    'notes-templates': NotesTemplatesSelect<false> | NotesTemplatesSelect<true>;
+    'service-templates': ServiceTemplatesSelect<false> | ServiceTemplatesSelect<true>;
+    settings: SettingsSelect<false> | SettingsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -160,6 +174,146 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companies".
+ */
+export interface Company {
+  id: number;
+  name: string;
+  nif?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  iban?: string | null;
+  logo?: (number | null) | Media;
+  primaryColor?: string | null;
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clients".
+ */
+export interface Client {
+  id: number;
+  name: string;
+  nif?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  workAddress?: string | null;
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quotes".
+ */
+export interface Quote {
+  id: number;
+  number: string;
+  projectTitle?: string | null;
+  createdAt: string;
+  validUntil?: string | null;
+  notes?: string | null;
+  company?: (number | null) | Company;
+  client?: (number | null) | Client;
+  items?:
+    | {
+        serviceName?: string | null;
+        description?: string | null;
+        quantity?: number | null;
+        unit?: string | null;
+        unitPrice?: number | null;
+        vatPercentage?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  status?: ('rascunho' | 'enviado' | 'em_analise' | 'aceite' | 'recusado' | 'expirado') | null;
+  history?:
+    | {
+        status?: string | null;
+        date?: string | null;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  templateId?: string | null;
+  createdBy?: (number | null) | User;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notes-templates".
+ */
+export interface NotesTemplate {
+  id: number;
+  name: string;
+  content: string;
+  category: 'geral' | 'pagamento' | 'prazo' | 'garantia' | 'material' | 'outro';
+  createdBy?: (number | null) | User;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-templates".
+ */
+export interface ServiceTemplate {
+  id: number;
+  name: string;
+  description?: string | null;
+  category:
+    | 'construcao'
+    | 'eletricidade'
+    | 'canalizacao'
+    | 'pintura'
+    | 'limpeza'
+    | 'consultoria'
+    | 'manutencao'
+    | 'outro';
+  unit: string;
+  unitPrice: number;
+  vatPercentage: number;
+  createdBy?: (number | null) | User;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings".
+ */
+export interface Setting {
+  id: number;
+  currency: string;
+  currencyLocale?: string | null;
+  language?: string | null;
+  defaultVat?: number | null;
+  quotePrefix?: string | null;
+  quoteValidity?: number | null;
+  companyDefaultColor?: string | null;
+  defaultTemplate?: string | null;
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: number;
+  type: 'info' | 'success' | 'warning' | 'quote';
+  title: string;
+  message?: string | null;
+  read?: boolean | null;
+  createdAt: string;
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -189,6 +343,34 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'companies';
+        value: number | Company;
+      } | null)
+    | ({
+        relationTo: 'clients';
+        value: number | Client;
+      } | null)
+    | ({
+        relationTo: 'quotes';
+        value: number | Quote;
+      } | null)
+    | ({
+        relationTo: 'notes-templates';
+        value: number | NotesTemplate;
+      } | null)
+    | ({
+        relationTo: 'service-templates';
+        value: number | ServiceTemplate;
+      } | null)
+    | ({
+        relationTo: 'settings';
+        value: number | Setting;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: number | Notification;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -271,6 +453,131 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companies_select".
+ */
+export interface CompaniesSelect<T extends boolean = true> {
+  name?: T;
+  nif?: T;
+  address?: T;
+  phone?: T;
+  email?: T;
+  iban?: T;
+  logo?: T;
+  primaryColor?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clients_select".
+ */
+export interface ClientsSelect<T extends boolean = true> {
+  name?: T;
+  nif?: T;
+  address?: T;
+  phone?: T;
+  email?: T;
+  workAddress?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quotes_select".
+ */
+export interface QuotesSelect<T extends boolean = true> {
+  number?: T;
+  projectTitle?: T;
+  createdAt?: T;
+  validUntil?: T;
+  notes?: T;
+  company?: T;
+  client?: T;
+  items?:
+    | T
+    | {
+        serviceName?: T;
+        description?: T;
+        quantity?: T;
+        unit?: T;
+        unitPrice?: T;
+        vatPercentage?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  status?: T;
+  history?:
+    | T
+    | {
+        status?: T;
+        date?: T;
+        note?: T;
+        id?: T;
+      };
+  templateId?: T;
+  createdBy?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notes-templates_select".
+ */
+export interface NotesTemplatesSelect<T extends boolean = true> {
+  name?: T;
+  content?: T;
+  category?: T;
+  createdBy?: T;
+  createdAt?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-templates_select".
+ */
+export interface ServiceTemplatesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  category?: T;
+  unit?: T;
+  unitPrice?: T;
+  vatPercentage?: T;
+  createdBy?: T;
+  createdAt?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings_select".
+ */
+export interface SettingsSelect<T extends boolean = true> {
+  currency?: T;
+  currencyLocale?: T;
+  language?: T;
+  defaultVat?: T;
+  quotePrefix?: T;
+  quoteValidity?: T;
+  companyDefaultColor?: T;
+  defaultTemplate?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  type?: T;
+  title?: T;
+  message?: T;
+  read?: T;
+  createdAt?: T;
+  createdBy?: T;
+  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

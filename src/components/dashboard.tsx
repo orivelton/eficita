@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from 'react'
 import {
   loadQuotes,
   deleteQuote,
@@ -11,11 +11,12 @@ import {
   calculateGrandTotal,
   saveQuote,
   addHistoryEntry,
-} from "@/lib/quotes"
-import type { Quote, QuoteStatus } from "@/lib/types"
-import { QUOTE_STATUS_CONFIG } from "@/lib/types"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+} from '@/lib/quotes'
+import { addNotification } from '@/lib/notifications'
+import type { Quote, QuoteStatus } from '@/lib/types'
+import { QUOTE_STATUS_CONFIG } from '@/lib/types'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +26,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,18 +34,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu"
-import {
-  Plus,
-  FileText,
-  Copy,
-  Trash2,
-  Pencil,
-  FileDown,
-  Search,
-} from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
+} from '@/components/ui/dropdown-menu'
+import { Plus, FileText, Copy, Trash2, Pencil, FileDown, Search } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 
 interface DashboardProps {
   onEditQuote: (quote: Quote) => void
@@ -55,38 +48,45 @@ interface DashboardProps {
 export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardProps) {
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<QuoteStatus | "all">("all")
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all'>('all')
 
   useEffect(() => {
-    setQuotes(loadQuotes())
+    async function load() {
+      const qs = await loadQuotes()
+      setQuotes(qs)
+    }
+    load()
   }, [])
 
-  const handleDuplicate = useCallback((id: string) => {
-    const updated = duplicateQuote(id)
+  const handleDuplicate = useCallback(async (id: string) => {
+    const updated = await duplicateQuote(id)
     setQuotes(updated)
-    toast.success("Proposta duplicada")
+    toast.success('Proposta duplicada')
+    addNotification('quote', 'Proposta duplicada', `Orcamento ${id} foi duplicado`) // fire and forget
   }, [])
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!deleteId) return
-    const updated = deleteQuote(deleteId)
+    const updated = await deleteQuote(deleteId)
     setQuotes(updated)
     setDeleteId(null)
-    toast.success("Proposta eliminada")
+    toast.success('Proposta eliminada')
   }, [deleteId])
 
   const handleStatusChange = useCallback(
-    (quoteId: string, newStatus: QuoteStatus) => {
+    async (quoteId: string, newStatus: QuoteStatus) => {
       const q = quotes.find((x) => x.id === quoteId)
       if (!q) return
       const cfg = QUOTE_STATUS_CONFIG[newStatus]
       const updated = addHistoryEntry(q, newStatus, `Estado alterado para ${cfg.label}`)
-      saveQuote(updated)
-      setQuotes(loadQuotes())
+      await saveQuote(updated)
+      const fresh = await loadQuotes()
+      setQuotes(fresh)
       toast.success(`Estado: ${cfg.label}`)
+      addNotification('quote', 'Status alterado', `Orcamento ${quoteId} passou para ${cfg.label}`)
     },
-    [quotes]
+    [quotes],
   )
 
   const filtered = quotes
@@ -96,34 +96,21 @@ export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardPro
         q.number.toLowerCase().includes(term) ||
         q.client.name.toLowerCase().includes(term) ||
         q.projectTitle.toLowerCase().includes(term)
-      const matchesStatus =
-        statusFilter === "all" || (q.status || "rascunho") === statusFilter
+      const matchesStatus = statusFilter === 'all' || (q.status || 'rascunho') === statusFilter
       return matchesSearch && matchesStatus
     })
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    )
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
 
-  const StatusBadge = ({
-    quote,
-    interactive = false,
-  }: {
-    quote: Quote
-    interactive?: boolean
-  }) => {
-    const status = (quote.status as QuoteStatus) || "rascunho"
+  const StatusBadge = ({ quote, interactive = false }: { quote: Quote; interactive?: boolean }) => {
+    const status = (quote.status as QuoteStatus) || 'rascunho'
     const cfg = QUOTE_STATUS_CONFIG[status] || QUOTE_STATUS_CONFIG.rascunho
 
     const badge = (
       <span
-        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${interactive ? "cursor-pointer transition-opacity hover:opacity-80" : ""}`}
+        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${interactive ? 'cursor-pointer transition-opacity hover:opacity-80' : ''}`}
         style={{ backgroundColor: cfg.bgColor, color: cfg.color }}
       >
-        <span
-          className="h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: cfg.color }}
-        />
+        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cfg.color }} />
         {cfg.label}
       </span>
     )
@@ -149,16 +136,11 @@ export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardPro
                 onClick={() => {
                   if (!isActive) handleStatusChange(quote.id, s)
                 }}
-                className={isActive ? "bg-secondary" : ""}
+                className={isActive ? 'bg-secondary' : ''}
               >
                 <span className="flex items-center gap-2">
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: c.color }}
-                  />
-                  <span className={isActive ? "font-semibold" : ""}>
-                    {c.label}
-                  </span>
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} />
+                  <span className={isActive ? 'font-semibold' : ''}>{c.label}</span>
                 </span>
               </DropdownMenuItem>
             )
@@ -175,7 +157,7 @@ export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardPro
         <div>
           <h1 className="text-xl font-semibold text-foreground">Propostas</h1>
           <p className="text-sm text-muted-foreground">
-            {quotes.length} {quotes.length === 1 ? "proposta" : "propostas"} no total
+            {quotes.length} {quotes.length === 1 ? 'proposta' : 'propostas'} no total
           </p>
         </div>
         <Button onClick={onNewQuote} size="sm">
@@ -198,46 +180,40 @@ export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardPro
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <button
-              onClick={() => setStatusFilter("all")}
+              onClick={() => setStatusFilter('all')}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                statusFilter === "all"
-                  ? "bg-foreground text-background"
-                  : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                statusFilter === 'all'
+                  ? 'bg-foreground text-background'
+                  : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
               }`}
             >
               Todos
             </button>
-            {(Object.keys(QUOTE_STATUS_CONFIG) as QuoteStatus[]).map(
-              (status) => {
-                const cfg = QUOTE_STATUS_CONFIG[status]
-                const count = quotes.filter(
-                  (q) => (q.status || "rascunho") === status
-                ).length
-                if (count === 0) return null
-                return (
-                  <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors"
+            {(Object.keys(QUOTE_STATUS_CONFIG) as QuoteStatus[]).map((status) => {
+              const cfg = QUOTE_STATUS_CONFIG[status]
+              const count = quotes.filter((q) => (q.status || 'rascunho') === status).length
+              if (count === 0) return null
+              return (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors"
+                  style={{
+                    backgroundColor: statusFilter === status ? cfg.color : cfg.bgColor,
+                    color: statusFilter === status ? '#fff' : cfg.color,
+                  }}
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
                     style={{
-                      backgroundColor:
-                        statusFilter === status ? cfg.color : cfg.bgColor,
-                      color: statusFilter === status ? "#fff" : cfg.color,
+                      backgroundColor: statusFilter === status ? '#fff' : cfg.color,
                     }}
-                  >
-                    <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{
-                        backgroundColor:
-                          statusFilter === status ? "#fff" : cfg.color,
-                      }}
-                    />
-                    {cfg.label}
-                    <span className="opacity-70">{count}</span>
-                  </button>
-                )
-              }
-            )}
+                  />
+                  {cfg.label}
+                  <span className="opacity-70">{count}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -248,9 +224,7 @@ export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardPro
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
             <FileText className="h-7 w-7 text-muted-foreground" />
           </div>
-          <h2 className="mt-4 text-base font-medium text-foreground">
-            Sem propostas
-          </h2>
+          <h2 className="mt-4 text-base font-medium text-foreground">Sem propostas</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Crie a sua primeira proposta para comecar.
           </p>
@@ -262,9 +236,7 @@ export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardPro
       ) : filtered.length === 0 ? (
         <Card className="flex flex-col items-center justify-center py-14">
           <Search className="h-7 w-7 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Nenhum resultado encontrado.
-          </p>
+          <p className="mt-3 text-sm text-muted-foreground">Nenhum resultado encontrado.</p>
         </Card>
       ) : (
         <div className="grid gap-2">
@@ -291,18 +263,14 @@ export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardPro
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-primary">
-                          {quote.number}
-                        </span>
+                        <span className="text-xs font-semibold text-primary">{quote.number}</span>
                         <StatusBadge quote={quote} interactive />
                       </div>
                       <p className="mt-0.5 text-sm font-medium text-foreground">
-                        {quote.client.name || "Sem cliente"}
+                        {quote.client.name || 'Sem cliente'}
                       </p>
                       {quote.projectTitle && (
-                        <p className="text-xs text-muted-foreground">
-                          {quote.projectTitle}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{quote.projectTitle}</p>
                       )}
                     </div>
                     <p className="shrink-0 text-sm font-bold text-foreground">
@@ -314,16 +282,48 @@ export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardPro
                       {formatDate(quote.createdAt)}
                     </span>
                     <div className="flex items-center gap-0.5">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onEditQuote(quote) }}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEditQuote(quote)
+                        }}
+                      >
                         <Pencil className="h-3 w-3" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); handleDuplicate(quote.id) }}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDuplicate(quote.id)
+                        }}
+                      >
                         <Copy className="h-3 w-3" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onExportPdf(quote) }}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onExportPdf(quote)
+                        }}
+                      >
                         <FileDown className="h-3 w-3" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(quote.id) }}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDeleteId(quote.id)
+                        }}
+                      >
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
@@ -336,31 +336,69 @@ export function Dashboard({ onEditQuote, onExportPdf, onNewQuote }: DashboardPro
                     <p className="text-sm font-semibold text-primary">{quote.number}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="truncate text-sm font-medium text-foreground">{quote.client.name || "Sem cliente"}</p>
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {quote.client.name || 'Sem cliente'}
+                    </p>
                   </div>
                   <div className="col-span-2">
-                    <p className="truncate text-sm text-muted-foreground">{quote.projectTitle || "-"}</p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {quote.projectTitle || '-'}
+                    </p>
                   </div>
                   <div className="col-span-2">
                     <StatusBadge quote={quote} interactive />
                   </div>
                   <div className="col-span-1 text-right">
-                    <p className="text-sm font-bold text-foreground">{formatCurrency(calculateGrandTotal(quote.items))}</p>
+                    <p className="text-sm font-bold text-foreground">
+                      {formatCurrency(calculateGrandTotal(quote.items))}
+                    </p>
                   </div>
                   <div className="col-span-1 text-center">
                     <p className="text-xs text-muted-foreground">{formatDate(quote.createdAt)}</p>
                   </div>
                   <div className="col-span-2 flex items-center justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onEditQuote(quote) }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onEditQuote(quote)
+                      }}
+                    >
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleDuplicate(quote.id) }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDuplicate(quote.id)
+                      }}
+                    >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onExportPdf(quote) }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onExportPdf(quote)
+                      }}
+                    >
                       <FileDown className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(quote.id) }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setDeleteId(quote.id)
+                      }}
+                    >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>

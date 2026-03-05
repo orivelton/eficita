@@ -13,22 +13,24 @@ export default function QuotePage() {
 
   useEffect(() => {
     if (!id) return
-    const all = loadQuotes()
-    if (id === 'new') {
-      const n = createEmptyQuote(all)
-      setQuote(n)
-      router.replace(`/quote/${n.id}`)
-      return
-    }
-    const found = all.find((q) => q.id === id)
-    if (found) {
-      setQuote(found)
-    } else {
-      // if not found, treat as new with given id
-      const n = createEmptyQuote(all)
-      n.id = id
-      setQuote(n)
-    }
+    ;(async () => {
+      const all = await loadQuotes()
+      if (id === 'new') {
+        const n = await createEmptyQuote(all)
+        setQuote(n)
+        router.replace(`/quote/${n.id}`)
+        return
+      }
+      const found = all.find((q) => q.id === id)
+      if (found) {
+        setQuote(found)
+      } else {
+        // if not found, treat as new with given id
+        const n = await createEmptyQuote(all)
+        n.id = id
+        setQuote(n)
+      }
+    })()
   }, [id, router])
 
   if (!quote) return null

@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
         collection: 'users',
         email,
         password,
-      })
+      } as any)
     } catch (loginErr: any) {
       if (
         process.env.NODE_ENV !== 'production' &&
@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
         await payload.create({
           collection: 'users',
           data: { email, password },
-        })
+        } as any)
         result = await payload.login({
           collection: 'users',
           email,
           password,
-        })
+        } as any)
       } else {
         // rethrow so outer catch block handles it
         throw loginErr

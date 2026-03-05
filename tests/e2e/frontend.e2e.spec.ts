@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
-import { seedTestUser } from './helpers/seedUser'
+import { seedTestUser } from '../helpers/seedUser'
 import { DEMO_CREDENTIALS } from '../../src/lib/auth'
 
 test.describe('Frontend', () => {
@@ -32,6 +32,26 @@ test.describe('Frontend', () => {
     // after login we should be redirected
     await expect(page).toHaveURL(/\/overview$/)
     await expect(page.locator('h1')).toHaveText('Painel')
+
+    // open notifications panel and verify seeded items
+    await page.click('button[aria-label="Notificacoes"]')
+    await expect(page.locator('div:has-text("Notificacoes")')).toBeVisible()
+    // there should be at least one notification from the seed data
+    await expect(page.locator('text=Bem-vindo ao Orcamentos Pro')).toBeVisible()
+    // close panel
+    await page.click('button[aria-label="Notificacoes"]')
+
+    // create a new proposal via dashboard
+    await page.click('button:has-text("Nova Proposta")')
+    // assume navigation to editor happened
+    await expect(page).toHaveURL(/\/quote\//)
+    // click back to return to overview
+    await page.click('button[aria-label="Voltar"]')
+    await expect(page).toHaveURL(/\/overview$/)
+
+    // open notifications again and check the new notification
+    await page.click('button[aria-label="Notificacoes"]')
+    await expect(page.locator('text=Nova proposta')).toBeVisible()
 
     // go to settings and open companies modal
     await page.click('button:has-text("Definicoes")')

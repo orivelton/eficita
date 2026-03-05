@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react"
-import type { Quote, QuoteStatus, NotesTemplate, TemplateCategory } from "@/lib/types"
-import type { SavedCompany, SavedClient } from "@/lib/types"
-import { QUOTE_STATUS_CONFIG, TEMPLATE_CATEGORIES } from "@/lib/types"
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import type { Quote, QuoteStatus, NotesTemplate, TemplateCategory } from '@/lib/types'
+import type { SavedCompany, SavedClient } from '@/lib/types'
+import { QUOTE_STATUS_CONFIG, TEMPLATE_CATEGORIES } from '@/lib/types'
 import {
   saveQuote,
   validateQuote,
@@ -14,24 +14,25 @@ import {
   addHistoryEntry,
   loadTemplates,
   updateTemplate,
-} from "@/lib/quotes"
-import type { ValidationErrors } from "@/lib/quotes"
-import { CompanyForm } from "@/components/company-form"
-import { ClientForm } from "@/components/client-form"
-import { ItemsForm } from "@/components/items-form"
-import { QuotePreview } from "@/components/quote-preview"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card } from "@/components/ui/card"
+} from '@/lib/quotes'
+import { addNotification } from '@/lib/notifications'
+import type { ValidationErrors } from '@/lib/quotes'
+import { CompanyForm } from '@/components/company-form'
+import { ClientForm } from '@/components/client-form'
+import { ItemsForm } from '@/components/items-form'
+import { QuotePreview } from '@/components/quote-preview'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Card } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/select'
 import {
   ArrowLeft,
   ArrowRight,
@@ -53,11 +54,11 @@ import {
   X,
   ChevronDown,
   ChevronUp,
-} from "lucide-react"
-import { toast } from "sonner"
-import { PreviewContainer } from "@/components/preview-container"
-import { TemplatePicker, TemplateButton } from "@/components/template-picker"
-import type { QuoteTemplateId } from "@/lib/types"
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { PreviewContainer } from '@/components/preview-container'
+import { TemplatePicker, TemplateButton } from '@/components/template-picker'
+import type { QuoteTemplateId } from '@/lib/types'
 
 interface QuoteEditorProps {
   initialQuote: Quote
@@ -66,35 +67,31 @@ interface QuoteEditorProps {
 }
 
 const STEPS = [
-  { id: 0, label: "Empresa", icon: Building2 },
-  { id: 1, label: "Cliente", icon: User },
-  { id: 2, label: "Itens", icon: ListOrdered },
-  { id: 3, label: "Condições", icon: FileText },
+  { id: 0, label: 'Empresa', icon: Building2 },
+  { id: 1, label: 'Cliente', icon: User },
+  { id: 2, label: 'Itens', icon: ListOrdered },
+  { id: 3, label: 'Condições', icon: FileText },
 ] as const
 
 const STATUS_OPTIONS: QuoteStatus[] = [
-  "rascunho",
-  "enviado",
-  "em_analise",
-  "aceite",
-  "recusado",
-  "expirado",
+  'rascunho',
+  'enviado',
+  'em_analise',
+  'aceite',
+  'recusado',
+  'expirado',
 ]
 
-export function QuoteEditor({
-  initialQuote,
-  onBack,
-  onExportPdf,
-}: QuoteEditorProps) {
+export function QuoteEditor({ initialQuote, onBack, onExportPdf }: QuoteEditorProps) {
   const [quote, setQuote] = useState<Quote>(() => ({
     ...initialQuote,
-    status: initialQuote.status || "rascunho",
+    status: initialQuote.status || 'rascunho',
     history: initialQuote.history || [
       {
         id: crypto.randomUUID(),
-        status: "rascunho" as QuoteStatus,
+        status: 'rascunho' as QuoteStatus,
         date: new Date().toISOString(),
-        note: "Orçamento criado",
+        note: 'Orçamento criado',
       },
     ],
   }))
@@ -111,26 +108,32 @@ export function QuoteEditor({
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
 
   // Search
-  const [companySearch, setCompanySearch] = useState("")
-  const [clientSearch, setClientSearch] = useState("")
+  const [companySearch, setCompanySearch] = useState('')
+  const [clientSearch, setClientSearch] = useState('')
 
   // Status change
   const [showHistory, setShowHistory] = useState(false)
-  const [statusNote, setStatusNote] = useState("")
+  const [statusNote, setStatusNote] = useState('')
 
   // Templates
   const [templates, setTemplates] = useState<NotesTemplate[]>([])
-  const [templateSearch, setTemplateSearch] = useState("")
-  const [templateFilter, setTemplateFilter] = useState<TemplateCategory | "all">("all")
+  const [templateSearch, setTemplateSearch] = useState('')
+  const [templateFilter, setTemplateFilter] = useState<TemplateCategory | 'all'>('all')
   const [showTemplates, setShowTemplates] = useState(true)
   const [editingTemplate, setEditingTemplate] = useState<NotesTemplate | null>(null)
-  const [editForm, setEditForm] = useState({ name: "", content: "", category: "geral" as TemplateCategory })
+  const [editForm, setEditForm] = useState({
+    name: '',
+    content: '',
+    category: 'geral' as TemplateCategory,
+  })
   const [showTemplatePicker, setShowTemplatePicker] = useState(false)
 
   useEffect(() => {
-    setSavedCompanies(loadSavedCompanies())
-    setSavedClients(loadSavedClients())
-    setTemplates(loadTemplates())
+    ;(async () => {
+      setSavedCompanies(await loadSavedCompanies())
+      setSavedClients(await loadSavedClients())
+      setTemplates(await loadTemplates())
+    })()
   }, [])
 
   // Auto-save
@@ -153,7 +156,7 @@ export function QuoteEditor({
       (c) =>
         c.name.toLowerCase().includes(term) ||
         c.nif.toLowerCase().includes(term) ||
-        c.email.toLowerCase().includes(term)
+        c.email.toLowerCase().includes(term),
     )
   }, [savedCompanies, companySearch])
 
@@ -165,7 +168,7 @@ export function QuoteEditor({
         c.name.toLowerCase().includes(term) ||
         c.nif.toLowerCase().includes(term) ||
         c.email.toLowerCase().includes(term) ||
-        c.phone.toLowerCase().includes(term)
+        c.phone.toLowerCase().includes(term),
     )
   }, [savedClients, clientSearch])
 
@@ -179,7 +182,7 @@ export function QuoteEditor({
       setSelectedCompanyId(company.id)
       updateQuote({ company: savedCompanyToCompanyData(company) })
     },
-    [updateQuote]
+    [updateQuote],
   )
 
   const handleSelectClient = useCallback(
@@ -187,7 +190,7 @@ export function QuoteEditor({
       setSelectedClientId(client.id)
       updateQuote({ client: savedClientToClientData(client) })
     },
-    [updateQuote]
+    [updateQuote],
   )
 
   const filteredTemplates = useMemo(() => {
@@ -195,12 +198,10 @@ export function QuoteEditor({
     if (templateSearch.trim()) {
       const term = templateSearch.toLowerCase()
       result = result.filter(
-        (t) =>
-          t.name.toLowerCase().includes(term) ||
-          t.content.toLowerCase().includes(term)
+        (t) => t.name.toLowerCase().includes(term) || t.content.toLowerCase().includes(term),
       )
     }
-    if (templateFilter !== "all") {
+    if (templateFilter !== 'all') {
       result = result.filter((t) => t.category === templateFilter)
     }
     return result
@@ -209,13 +210,11 @@ export function QuoteEditor({
   const handleApplyTemplate = useCallback(
     (template: NotesTemplate) => {
       const current = quote.notes.trim()
-      const newNotes = current
-        ? `${current}\n\n${template.content}`
-        : template.content
+      const newNotes = current ? `${current}\n\n${template.content}` : template.content
       updateQuote({ notes: newNotes })
       toast.success(`Template "${template.name}" aplicado`)
     },
-    [quote.notes, updateQuote]
+    [quote.notes, updateQuote],
   )
 
   const handleReplaceWithTemplate = useCallback(
@@ -223,7 +222,7 @@ export function QuoteEditor({
       updateQuote({ notes: template.content })
       toast.success(`Template "${template.name}" aplicado`)
     },
-    [updateQuote]
+    [updateQuote],
   )
 
   const handleStartEditTemplate = useCallback((template: NotesTemplate) => {
@@ -235,13 +234,13 @@ export function QuoteEditor({
     })
   }, [])
 
-  const handleSaveEditTemplate = useCallback(() => {
+  const handleSaveEditTemplate = useCallback(async () => {
     if (!editingTemplate) return
     if (!editForm.name.trim() || !editForm.content.trim()) {
-      toast.error("Nome e conteudo obrigatorios")
+      toast.error('Nome e conteudo obrigatorios')
       return
     }
-    const updated = updateTemplate({
+    const updated = await updateTemplate({
       ...editingTemplate,
       name: editForm.name,
       content: editForm.content,
@@ -249,7 +248,7 @@ export function QuoteEditor({
     })
     setTemplates(updated)
     setEditingTemplate(null)
-    toast.success("Template atualizado")
+    toast.success('Template atualizado')
   }, [editingTemplate, editForm])
 
   const handleStatusChange = useCallback(
@@ -259,17 +258,22 @@ export function QuoteEditor({
       const updated = addHistoryEntry(quote, newStatus, note)
       setQuote(updated)
       saveQuote(updated)
-      setStatusNote("")
+      setStatusNote('')
       toast.success(`Status: ${config.label}`)
+      addNotification(
+        'quote',
+        'Status alterado',
+        `Orcamento ${quote.number} passou para ${config.label}`,
+      )
     },
-    [quote, statusNote]
+    [quote, statusNote],
   )
 
   const handleExportPdf = useCallback(() => {
     const validationErrors = validateQuote(quote)
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
-      toast.error("Corrija os erros antes de exportar")
+      toast.error('Corrija os erros antes de exportar')
       return
     }
     saveQuote(quote)
@@ -279,7 +283,7 @@ export function QuoteEditor({
   const handleSave = useCallback(() => {
     saveQuote(quote)
     setSaved(true)
-    toast.success("Orçamento guardado")
+    toast.success('Orçamento guardado')
     setTimeout(() => setSaved(false), 2000)
   }, [quote])
 
@@ -304,17 +308,14 @@ export function QuoteEditor({
         case 1:
           return !!quote.client.name.trim()
         case 2:
-          return (
-            quote.items.length > 0 &&
-            quote.items.some((i) => i.serviceName.trim() !== "")
-          )
+          return quote.items.length > 0 && quote.items.some((i) => i.serviceName.trim() !== '')
         case 3:
           return true
         default:
           return false
       }
     },
-    [quote]
+    [quote],
   )
 
   const statusConfig = QUOTE_STATUS_CONFIG[quote.status] || QUOTE_STATUS_CONFIG.rascunho
@@ -324,20 +325,13 @@ export function QuoteEditor({
       {/* Toolbar */}
       <header className="flex items-center justify-between border-b border-border bg-card px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            className="h-8 w-8"
-          >
+          <Button variant="ghost" size="icon" onClick={handleBack} className="h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Voltar</span>
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-foreground">
-                {quote.number}
-              </p>
+              <p className="text-sm font-semibold text-foreground">{quote.number}</p>
               <span
                 className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
                 style={{
@@ -348,9 +342,7 @@ export function QuoteEditor({
                 {statusConfig.label}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {saved ? "Guardado" : "A guardar..."}
-            </p>
+            <p className="text-xs text-muted-foreground">{saved ? 'Guardado' : 'A guardar...'}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -365,9 +357,7 @@ export function QuoteEditor({
             ) : (
               <Eye className="mr-1.5 h-3.5 w-3.5" />
             )}
-            <span className="hidden sm:inline">
-              {showPreview ? "Formulário" : "Preview"}
-            </span>
+            <span className="hidden sm:inline">{showPreview ? 'Formulário' : 'Preview'}</span>
           </Button>
           <Button variant="outline" size="sm" onClick={handleSave}>
             <Save className="mr-1.5 h-3.5 w-3.5" />
@@ -385,7 +375,7 @@ export function QuoteEditor({
         {/* Form panel */}
         <div
           className={`w-full flex-shrink-0 lg:w-[500px] xl:w-[560px] ${
-            showPreview ? "hidden lg:flex" : "flex"
+            showPreview ? 'hidden lg:flex' : 'flex'
           } flex-col overflow-hidden`}
         >
           {/* Step indicator */}
@@ -401,10 +391,10 @@ export function QuoteEditor({
                     onClick={() => setStep(i)}
                     className={`group flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-all ${
                       isActive
-                        ? "bg-primary text-primary-foreground"
+                        ? 'bg-primary text-primary-foreground'
                         : isDone
-                          ? "bg-accent/15 text-accent hover:bg-accent/25"
-                          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                          ? 'bg-accent/15 text-accent hover:bg-accent/25'
+                          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                     }`}
                   >
                     {isDone ? (
@@ -429,9 +419,7 @@ export function QuoteEditor({
                   <Label className="text-xs font-medium">Titulo do Projeto</Label>
                   <Input
                     value={quote.projectTitle}
-                    onChange={(e) =>
-                      updateQuote({ projectTitle: e.target.value })
-                    }
+                    onChange={(e) => updateQuote({ projectTitle: e.target.value })}
                     placeholder="ex: Remodelacao cozinha"
                     className="mt-1"
                   />
@@ -442,9 +430,7 @@ export function QuoteEditor({
                     <Input
                       type="date"
                       value={quote.createdAt}
-                      onChange={(e) =>
-                        updateQuote({ createdAt: e.target.value })
-                      }
+                      onChange={(e) => updateQuote({ createdAt: e.target.value })}
                       className="mt-1"
                     />
                   </div>
@@ -453,9 +439,7 @@ export function QuoteEditor({
                     <Input
                       type="date"
                       value={quote.validUntil}
-                      onChange={(e) =>
-                        updateQuote({ validUntil: e.target.value })
-                      }
+                      onChange={(e) => updateQuote({ validUntil: e.target.value })}
                       className="mt-1"
                     />
                   </div>
@@ -493,8 +477,8 @@ export function QuoteEditor({
                                 key={company.id}
                                 className={`cursor-pointer transition-all ${
                                   isSelected
-                                    ? "border-primary bg-primary/5 ring-1 ring-primary"
-                                    : "hover:border-primary/40 hover:bg-secondary/50"
+                                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                    : 'hover:border-primary/40 hover:bg-secondary/50'
                                 }`}
                                 onClick={() => handleSelectCompany(company)}
                               >
@@ -523,12 +507,9 @@ export function QuoteEditor({
                                       {company.name}
                                     </p>
                                     <p className="truncate text-xs text-muted-foreground">
-                                      {[
-                                        company.nif && `NIF: ${company.nif}`,
-                                        company.address,
-                                      ]
+                                      {[company.nif && `NIF: ${company.nif}`, company.address]
                                         .filter(Boolean)
-                                        .join(" · ")}
+                                        .join(' · ')}
                                     </p>
                                   </div>
                                   {isSelected && (
@@ -592,8 +573,8 @@ export function QuoteEditor({
                                 key={client.id}
                                 className={`cursor-pointer transition-all ${
                                   isSelected
-                                    ? "border-primary bg-primary/5 ring-1 ring-primary"
-                                    : "hover:border-primary/40 hover:bg-secondary/50"
+                                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                    : 'hover:border-primary/40 hover:bg-secondary/50'
                                 }`}
                                 onClick={() => handleSelectClient(client)}
                               >
@@ -612,7 +593,7 @@ export function QuoteEditor({
                                         client.address,
                                       ]
                                         .filter(Boolean)
-                                        .join(" · ")}
+                                        .join(' · ')}
                                     </p>
                                   </div>
                                   {isSelected && (
@@ -703,9 +684,7 @@ export function QuoteEditor({
                               </div>
                               <Input
                                 value={editForm.name}
-                                onChange={(e) =>
-                                  setEditForm({ ...editForm, name: e.target.value })
-                                }
+                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                                 placeholder="Nome do template"
                                 className="text-sm"
                               />
@@ -737,7 +716,7 @@ export function QuoteEditor({
                                             </span>
                                           </SelectItem>
                                         )
-                                      }
+                                      },
                                     )}
                                   </SelectContent>
                                 </Select>
@@ -779,7 +758,7 @@ export function QuoteEditor({
                                 <Select
                                   value={templateFilter}
                                   onValueChange={(v) =>
-                                    setTemplateFilter(v as TemplateCategory | "all")
+                                    setTemplateFilter(v as TemplateCategory | 'all')
                                   }
                                 >
                                   <SelectTrigger className="h-8 w-[120px] text-xs">
@@ -792,7 +771,7 @@ export function QuoteEditor({
                                         <SelectItem key={cat} value={cat}>
                                           {TEMPLATE_CATEGORIES[cat].label}
                                         </SelectItem>
-                                      )
+                                      ),
                                     )}
                                   </SelectContent>
                                 </Select>
@@ -874,16 +853,16 @@ export function QuoteEditor({
 
                   {/* Notes textarea */}
                   <div className="rounded-lg border border-border bg-card p-4">
-                    <Label className="text-xs font-semibold">
-                      Observacoes / Condicoes
-                    </Label>
+                    <Label className="text-xs font-semibold">Observacoes / Condicoes</Label>
                     <p className="mb-3 text-xs text-muted-foreground">
                       Condicoes de pagamento, prazos de execucao, garantias, notas adicionais.
                     </p>
                     <Textarea
                       value={quote.notes}
                       onChange={(e) => updateQuote({ notes: e.target.value })}
-                      placeholder={"Exemplo:\n- Pagamento: 50% no inicio, 50% na conclusao\n- Prazo de execucao: 15 dias uteis\n- Garantia: 2 anos sobre mao de obra\n- Orcamento valido por 30 dias"}
+                      placeholder={
+                        'Exemplo:\n- Pagamento: 50% no inicio, 50% na conclusao\n- Prazo de execucao: 15 dias uteis\n- Garantia: 2 anos sobre mao de obra\n- Orcamento valido por 30 dias'
+                      }
                       rows={8}
                       className="text-sm"
                     />
@@ -940,7 +919,7 @@ export function QuoteEditor({
                       className="mt-4 flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
                     >
                       <Clock className="h-3.5 w-3.5" />
-                      {showHistory ? "Ocultar historico" : "Ver historico"}
+                      {showHistory ? 'Ocultar historico' : 'Ver historico'}
                       {quote.history && (
                         <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground">
                           {quote.history.length}
@@ -951,7 +930,8 @@ export function QuoteEditor({
                     {showHistory && quote.history && quote.history.length > 0 && (
                       <div className="mt-3 space-y-0">
                         {[...quote.history].reverse().map((entry, i) => {
-                          const cfg = QUOTE_STATUS_CONFIG[entry.status] || QUOTE_STATUS_CONFIG.rascunho
+                          const cfg =
+                            QUOTE_STATUS_CONFIG[entry.status] || QUOTE_STATUS_CONFIG.rascunho
                           return (
                             <div key={entry.id} className="relative flex gap-3 pb-4">
                               {/* Timeline line */}
@@ -963,7 +943,7 @@ export function QuoteEditor({
                                 className="relative mt-1 h-3.5 w-3.5 shrink-0 rounded-full border-2"
                                 style={{
                                   borderColor: cfg.color,
-                                  backgroundColor: i === 0 ? cfg.color : "transparent",
+                                  backgroundColor: i === 0 ? cfg.color : 'transparent',
                                 }}
                               />
                               <div className="min-w-0 flex-1">
@@ -978,12 +958,12 @@ export function QuoteEditor({
                                     {cfg.label}
                                   </span>
                                   <span className="text-[11px] text-muted-foreground">
-                                    {new Date(entry.date).toLocaleDateString("pt-PT", {
-                                      day: "2-digit",
-                                      month: "short",
-                                      year: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
+                                    {new Date(entry.date).toLocaleDateString('pt-PT', {
+                                      day: '2-digit',
+                                      month: 'short',
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
                                     })}
                                   </span>
                                 </div>
@@ -1011,7 +991,7 @@ export function QuoteEditor({
                         <div className="min-w-0">
                           <p className="text-xs text-muted-foreground">Empresa</p>
                           <p className="truncate font-medium text-foreground">
-                            {quote.company.name || "Nao definida"}
+                            {quote.company.name || 'Nao definida'}
                           </p>
                         </div>
                       </div>
@@ -1020,19 +1000,16 @@ export function QuoteEditor({
                         <div className="min-w-0">
                           <p className="text-xs text-muted-foreground">Cliente</p>
                           <p className="truncate font-medium text-foreground">
-                            {quote.client.name || "Nao definido"}
+                            {quote.client.name || 'Nao definido'}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <ListOrdered className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                         <div className="min-w-0">
-                          <p className="text-xs text-muted-foreground">
-                            Itens / Servicos
-                          </p>
+                          <p className="text-xs text-muted-foreground">Itens / Servicos</p>
                           <p className="font-medium text-foreground">
-                            {quote.items.length}{" "}
-                            {quote.items.length === 1 ? "item" : "itens"}
+                            {quote.items.length} {quote.items.length === 1 ? 'item' : 'itens'}
                           </p>
                         </div>
                       </div>
@@ -1045,12 +1022,7 @@ export function QuoteEditor({
 
           {/* Step navigation footer */}
           <div className="flex shrink-0 items-center justify-between border-t border-border bg-card px-4 py-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goPrev}
-              disabled={step === 0}
-            >
+            <Button variant="outline" size="sm" onClick={goPrev} disabled={step === 0}>
               <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
               Anterior
             </Button>
@@ -1059,11 +1031,7 @@ export function QuoteEditor({
                 <div
                   key={i}
                   className={`h-1.5 rounded-full transition-all ${
-                    i === step
-                      ? "w-6 bg-primary"
-                      : i < step
-                        ? "w-1.5 bg-accent"
-                        : "w-1.5 bg-border"
+                    i === step ? 'w-6 bg-primary' : i < step ? 'w-1.5 bg-accent' : 'w-1.5 bg-border'
                   }`}
                 />
               ))}
@@ -1085,7 +1053,7 @@ export function QuoteEditor({
         {/* Preview panel */}
         <div
           className={`flex min-h-0 flex-1 flex-col overflow-hidden border-l border-border ${
-            showPreview ? "flex" : "hidden lg:flex"
+            showPreview ? 'flex' : 'hidden lg:flex'
           }`}
         >
           <PreviewContainer className="flex-1">

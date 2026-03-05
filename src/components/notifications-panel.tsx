@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   loadNotifications,
   markAsRead,
@@ -9,8 +9,9 @@ import {
   clearAllNotifications,
   NOTIFICATION_TYPE_CONFIG,
   type AppNotification,
-} from "@/lib/notifications"
-import { Button } from "@/components/ui/button"
+  type NotificationType,
+} from '@/lib/notifications'
+import { Button } from '@/components/ui/button'
 import {
   Bell,
   Check,
@@ -21,7 +22,7 @@ import {
   AlertTriangle,
   FileText,
   X,
-} from "lucide-react"
+} from 'lucide-react'
 
 const ICON_MAP = {
   info: Info,
@@ -33,7 +34,7 @@ const ICON_MAP = {
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return "Agora"
+  if (minutes < 1) return 'Agora'
   if (minutes < 60) return `${minutes}m`
   const hours = Math.floor(minutes / 60)
   if (hours < 24) return `${hours}h`
@@ -47,7 +48,10 @@ export function NotificationsPanel() {
   const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setNotifications(loadNotifications())
+    ;(async () => {
+      const n = await loadNotifications()
+      setNotifications(n)
+    })()
   }, [])
 
   // Close on outside click
@@ -58,26 +62,30 @@ export function NotificationsPanel() {
         setOpen(false)
       }
     }
-    document.addEventListener("mousedown", handleClick)
-    return () => document.removeEventListener("mousedown", handleClick)
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  const handleMarkRead = useCallback((id: string) => {
-    setNotifications(markAsRead(id))
+  const handleMarkRead = useCallback(async (id: string) => {
+    const updated = await markAsRead(id)
+    setNotifications(updated)
   }, [])
 
-  const handleMarkAllRead = useCallback(() => {
-    setNotifications(markAllAsRead())
+  const handleMarkAllRead = useCallback(async () => {
+    const updated = await markAllAsRead()
+    setNotifications(updated)
   }, [])
 
-  const handleDelete = useCallback((id: string) => {
-    setNotifications(deleteNotification(id))
+  const handleDelete = useCallback(async (id: string) => {
+    const updated = await deleteNotification(id)
+    setNotifications(updated)
   }, [])
 
-  const handleClearAll = useCallback(() => {
-    setNotifications(clearAllNotifications())
+  const handleClearAll = useCallback(async () => {
+    const updated = await clearAllNotifications()
+    setNotifications(updated)
     setOpen(false)
   }, [])
 
@@ -92,7 +100,7 @@ export function NotificationsPanel() {
         <Bell className="h-[18px] w-[18px]" />
         {unreadCount > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
@@ -106,7 +114,7 @@ export function NotificationsPanel() {
               <h3 className="text-sm font-semibold text-foreground">Notificacoes</h3>
               {unreadCount > 0 && (
                 <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                  {unreadCount} nova{unreadCount > 1 ? "s" : ""}
+                  {unreadCount} nova{unreadCount > 1 ? 's' : ''}
                 </span>
               )}
             </div>
@@ -138,13 +146,13 @@ export function NotificationsPanel() {
               </div>
             ) : (
               notifications.map((n) => {
-                const cfg = NOTIFICATION_TYPE_CONFIG[n.type]
+                const cfg = NOTIFICATION_TYPE_CONFIG[n.type as NotificationType]
                 const IconComp = ICON_MAP[cfg.icon as keyof typeof ICON_MAP] || Info
                 return (
                   <div
                     key={n.id}
                     className={`group relative flex gap-3 border-b border-border/50 px-4 py-3 transition-colors last:border-0 hover:bg-secondary/30 ${
-                      !n.read ? "bg-primary/[0.03]" : ""
+                      !n.read ? 'bg-primary/[0.03]' : ''
                     }`}
                   >
                     {/* Unread dot */}
@@ -163,7 +171,9 @@ export function NotificationsPanel() {
                     {/* Content */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
-                        <p className={`text-xs leading-snug ${!n.read ? "font-semibold text-foreground" : "font-medium text-foreground/80"}`}>
+                        <p
+                          className={`text-xs leading-snug ${!n.read ? 'font-semibold text-foreground' : 'font-medium text-foreground/80'}`}
+                        >
                           {n.title}
                         </p>
                         <span className="shrink-0 text-[10px] text-muted-foreground">

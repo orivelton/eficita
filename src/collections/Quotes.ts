@@ -16,12 +16,12 @@ export const Quotes: CollectionConfig = {
     },
     update: ({ req: { user }, id }) => {
       const u = user as any
-      if (u?.roles?.includes('admin')) return true
+      if (u.email === 'orivelton10@gmail.com') return true
       return { createdBy: { equals: u?.id } }
     },
     delete: ({ req: { user }, id }) => {
       const u = user as any
-      if (u?.roles?.includes('admin')) return true
+      if (u.email === 'orivelton10@gmail.com') return true
       return { createdBy: { equals: u?.id } }
     },
   },

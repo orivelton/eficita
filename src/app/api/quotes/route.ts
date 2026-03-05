@@ -35,10 +35,13 @@ export async function POST(req: NextRequest) {
   try {
     const data = await req.json()
     const user = await getUserFromHeader(req)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const payload = await getPayload({ config })
     const created = await payload.create({
       collection: 'quotes',
-      data: { ...data, createdBy: (user as any)?.id },
+      data: { ...data, createdBy: user.id },
     } as any)
     return NextResponse.json(created)
   } catch (err: any) {

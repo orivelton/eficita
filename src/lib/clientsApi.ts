@@ -28,7 +28,7 @@ export async function createClient(data: Omit<SavedClient, 'id'>): Promise<Saved
   return res.json()
 }
 
-export async function updateClient(data: Partial<SavedClient>): Promise<SavedClient> {
+export async function updateClient(id: string, data: Partial<SavedClient>): Promise<SavedClient> {
   const res = await fetch(BASE, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },

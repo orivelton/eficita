@@ -29,10 +29,10 @@ export async function createQuote(data: Partial<Quote>): Promise<Quote> {
 }
 
 export async function updateQuote(id: string, data: Partial<Quote>): Promise<Quote> {
-  const res = await fetch(`${BASE}/${id}`, {
+  const res = await fetch(BASE, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ id, ...data }),
   })
   if (!res.ok) throw new Error('failed to update quote')
   return res.json()

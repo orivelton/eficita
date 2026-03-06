@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     let result
     try {
       result = await payload.login({
-        collection: 'users',
+        collection: 'customers',
         email,
         password,
       } as any)
@@ -23,11 +23,11 @@ export async function POST(req: NextRequest) {
         loginErr.message?.toLowerCase().includes('not found')
       ) {
         await payload.create({
-          collection: 'users',
+          collection: 'customers',
           data: { email, password },
         } as any)
         result = await payload.login({
-          collection: 'users',
+          collection: 'customers',
           email,
           password,
         } as any)

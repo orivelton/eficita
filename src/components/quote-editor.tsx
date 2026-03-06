@@ -85,6 +85,8 @@ const STATUS_OPTIONS: QuoteStatus[] = [
 export function QuoteEditor({ initialQuote, onBack, onExportPdf }: QuoteEditorProps) {
   const [quote, setQuote] = useState<Quote>(() => ({
     ...initialQuote,
+    companyType: initialQuote.company ? 'existing' : 'manual',
+    clientType: initialQuote.client ? 'existing' : 'manual',
     status: initialQuote.status || 'rascunho',
     history: initialQuote.history || [
       {
@@ -180,7 +182,11 @@ export function QuoteEditor({ initialQuote, onBack, onExportPdf }: QuoteEditorPr
   const handleSelectCompany = useCallback(
     (company: SavedCompany) => {
       setSelectedCompanyId(company.id)
-      updateQuote({ company: savedCompanyToCompanyData(company) })
+      updateQuote({
+        companyType: 'existing',
+        company,
+        manualCompany: undefined,
+      })
     },
     [updateQuote],
   )
@@ -188,7 +194,11 @@ export function QuoteEditor({ initialQuote, onBack, onExportPdf }: QuoteEditorPr
   const handleSelectClient = useCallback(
     (client: SavedClient) => {
       setSelectedClientId(client.id)
-      updateQuote({ client: savedClientToClientData(client) })
+      updateQuote({
+        clientType: 'existing',
+        client,
+        manualClient: undefined,
+      })
     },
     [updateQuote],
   )
@@ -304,9 +314,13 @@ export function QuoteEditor({ initialQuote, onBack, onExportPdf }: QuoteEditorPr
     (s: number): boolean => {
       switch (s) {
         case 0:
-          return !!quote.company.name.trim()
+          return quote.companyType === 'existing'
+            ? !!quote.company?.name?.trim()
+            : !!quote.manualCompany?.trim()
         case 1:
-          return !!quote.client.name.trim()
+          return quote.clientType === 'existing'
+            ? !!quote.client?.name?.trim()
+            : !!quote.manualClient?.trim()
         case 2:
           return quote.items.length > 0 && quote.items.some((i) => i.serviceName.trim() !== '')
         case 3:
@@ -449,95 +463,130 @@ export function QuoteEditor({ initialQuote, onBack, onExportPdf }: QuoteEditorPr
               {/* Step 0: Empresa */}
               {step === 0 && (
                 <div className="space-y-4">
-                  {savedCompanies.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Selecionar empresa registada
-                      </p>
-                      {/* Search bar */}
-                      <div className="relative mb-3">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          placeholder="Procurar por nome, NIF ou email..."
-                          value={companySearch}
-                          onChange={(e) => setCompanySearch(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        {filteredCompanies.length === 0 ? (
-                          <p className="py-4 text-center text-sm text-muted-foreground">
-                            Nenhuma empresa encontrada.
-                          </p>
-                        ) : (
-                          filteredCompanies.map((company) => {
-                            const isSelected = selectedCompanyId === company.id
-                            return (
-                              <Card
-                                key={company.id}
-                                className={`cursor-pointer transition-all ${
-                                  isSelected
-                                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                    : 'hover:border-primary/40 hover:bg-secondary/50'
-                                }`}
-                                onClick={() => handleSelectCompany(company)}
-                              >
-                                <div className="flex items-center gap-3 p-3">
-                                  {company.logo ? (
-                                    <img
-                                      src={company.logo}
-                                      alt=""
-                                      className="h-10 w-10 shrink-0 rounded-lg border border-border object-contain"
-                                    />
-                                  ) : (
-                                    <div
-                                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-                                      style={{
-                                        backgroundColor: `${company.primaryColor}15`,
-                                      }}
-                                    >
-                                      <Building2
-                                        className="h-5 w-5"
-                                        style={{ color: company.primaryColor }}
-                                      />
-                                    </div>
-                                  )}
-                                  <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-semibold text-foreground">
-                                      {company.name}
-                                    </p>
-                                    <p className="truncate text-xs text-muted-foreground">
-                                      {[company.nif && `NIF: ${company.nif}`, company.address]
-                                        .filter(Boolean)
-                                        .join(' · ')}
-                                    </p>
-                                  </div>
-                                  {isSelected && (
-                                    <Check className="h-5 w-5 shrink-0 text-primary" />
-                                  )}
-                                </div>
-                              </Card>
-                            )
-                          })
-                        )}
-                      </div>
-                      <div className="my-4 flex items-center gap-3">
-                        <div className="h-px flex-1 bg-border" />
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                          ou preencha manualmente
-                        </span>
-                        <div className="h-px flex-1 bg-border" />
-                      </div>
-                    </div>
-                  )}
                   <div className="rounded-lg border border-border bg-card p-4">
-                    <CompanyForm
-                      company={quote.company}
-                      onChange={(company) => {
-                        setSelectedCompanyId(null)
-                        updateQuote({ company })
-                      }}
-                    />
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-semibold">Tipo de empresa</Label>
+                        <Select
+                          value={quote.companyType}
+                          onValueChange={(value: 'existing' | 'manual') => {
+                            updateQuote({
+                              companyType: value,
+                              company: value === 'existing' ? quote.company : undefined,
+                              manualCompany: value === 'manual' ? quote.manualCompany : undefined,
+                            })
+                            if (value === 'manual') setSelectedCompanyId(null)
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="existing">Empresa registada</SelectItem>
+                            <SelectItem value="manual">Empresa manual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {quote.companyType === 'existing' ? (
+                        <div className="space-y-4">
+                          {savedCompanies.length > 0 && (
+                            <div>
+                              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Selecionar empresa registada
+                              </p>
+                              {/* Search bar */}
+                              <div className="relative mb-3">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                  placeholder="Procurar por nome, NIF ou email..."
+                                  value={companySearch}
+                                  onChange={(e) => setCompanySearch(e.target.value)}
+                                  className="pl-10"
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                {filteredCompanies.length === 0 ? (
+                                  <p className="py-4 text-center text-sm text-muted-foreground">
+                                    Nenhuma empresa encontrada.
+                                  </p>
+                                ) : (
+                                  filteredCompanies.map((company) => {
+                                    const isSelected = selectedCompanyId === company.id
+                                    return (
+                                      <Card
+                                        key={company.id}
+                                        className={`cursor-pointer transition-all ${
+                                          isSelected
+                                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                            : 'hover:border-primary/40 hover:bg-secondary/50'
+                                        }`}
+                                        onClick={() => handleSelectCompany(company)}
+                                      >
+                                        <div className="flex items-center gap-3 p-3">
+                                          {company.logo ? (
+                                            <img
+                                              src={company.logo}
+                                              alt=""
+                                              className="h-10 w-10 shrink-0 rounded-lg border border-border object-contain"
+                                            />
+                                          ) : (
+                                            <div
+                                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                                              style={{
+                                                backgroundColor: `${company.primaryColor}15`,
+                                              }}
+                                            >
+                                              <Building2
+                                                className="h-5 w-5"
+                                                style={{ color: company.primaryColor }}
+                                              />
+                                            </div>
+                                          )}
+                                          <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold text-foreground">
+                                              {company.name}
+                                            </p>
+                                            <p className="truncate text-xs text-muted-foreground">
+                                              {[
+                                                company.nif && `NIF: ${company.nif}`,
+                                                company.address,
+                                              ]
+                                                .filter(Boolean)
+                                                .join(' · ')}
+                                            </p>
+                                          </div>
+                                          {isSelected && (
+                                            <Check className="h-5 w-5 shrink-0 text-primary" />
+                                          )}
+                                        </div>
+                                      </Card>
+                                    )
+                                  })
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {(!savedCompanies.length || !selectedCompanyId) && (
+                            <p className="text-sm text-muted-foreground">
+                              {!savedCompanies.length
+                                ? 'Nenhuma empresa registada. Use o formulário manual abaixo.'
+                                : 'Selecione uma empresa acima ou use o formulário manual.'}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <Label className="text-sm font-semibold">Nome da empresa</Label>
+                          <Input
+                            value={quote.manualCompany || ''}
+                            onChange={(e) => updateQuote({ manualCompany: e.target.value })}
+                            placeholder="Digite o nome da empresa"
+                            className="mt-1"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -545,84 +594,115 @@ export function QuoteEditor({ initialQuote, onBack, onExportPdf }: QuoteEditorPr
               {/* Step 1: Cliente */}
               {step === 1 && (
                 <div className="space-y-4">
-                  {savedClients.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Selecionar cliente registado
-                      </p>
-                      {/* Search bar */}
-                      <div className="relative mb-3">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          placeholder="Procurar por nome, NIF, email ou telefone..."
-                          value={clientSearch}
-                          onChange={(e) => setClientSearch(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        {filteredClients.length === 0 ? (
-                          <p className="py-4 text-center text-sm text-muted-foreground">
-                            Nenhum cliente encontrado.
-                          </p>
-                        ) : (
-                          filteredClients.map((client) => {
-                            const isSelected = selectedClientId === client.id
-                            return (
-                              <Card
-                                key={client.id}
-                                className={`cursor-pointer transition-all ${
-                                  isSelected
-                                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                    : 'hover:border-primary/40 hover:bg-secondary/50'
-                                }`}
-                                onClick={() => handleSelectClient(client)}
-                              >
-                                <div className="flex items-center gap-3 p-3">
-                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
-                                    <User className="h-5 w-5 text-muted-foreground" />
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-semibold text-foreground">
-                                      {client.name}
-                                    </p>
-                                    <p className="truncate text-xs text-muted-foreground">
-                                      {[
-                                        client.nif && `NIF: ${client.nif}`,
-                                        client.phone,
-                                        client.address,
-                                      ]
-                                        .filter(Boolean)
-                                        .join(' · ')}
-                                    </p>
-                                  </div>
-                                  {isSelected && (
-                                    <Check className="h-5 w-5 shrink-0 text-primary" />
-                                  )}
-                                </div>
-                              </Card>
-                            )
-                          })
-                        )}
-                      </div>
-                      <div className="my-4 flex items-center gap-3">
-                        <div className="h-px flex-1 bg-border" />
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                          ou preencha manualmente
-                        </span>
-                        <div className="h-px flex-1 bg-border" />
-                      </div>
-                    </div>
-                  )}
                   <div className="rounded-lg border border-border bg-card p-4">
-                    <ClientForm
-                      client={quote.client}
-                      onChange={(client) => {
-                        setSelectedClientId(null)
-                        updateQuote({ client })
-                      }}
-                      errors={errors}
-                    />
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-semibold">Tipo de cliente</Label>
+                        <Select
+                          value={quote.clientType}
+                          onValueChange={(value: 'existing' | 'manual') => {
+                            updateQuote({
+                              clientType: value,
+                              client: value === 'existing' ? quote.client : undefined,
+                              manualClient: value === 'manual' ? quote.manualClient : undefined,
+                            })
+                            if (value === 'manual') setSelectedClientId(null)
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="existing">Cliente registado</SelectItem>
+                            <SelectItem value="manual">Cliente manual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {quote.clientType === 'existing' ? (
+                        <div className="space-y-4">
+                          {savedClients.length > 0 && (
+                            <div>
+                              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Selecionar cliente registado
+                              </p>
+                              {/* Search bar */}
+                              <div className="relative mb-3">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                  placeholder="Procurar por nome, NIF, email ou telefone..."
+                                  value={clientSearch}
+                                  onChange={(e) => setClientSearch(e.target.value)}
+                                  className="pl-10"
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                {filteredClients.length === 0 ? (
+                                  <p className="py-4 text-center text-sm text-muted-foreground">
+                                    Nenhum cliente encontrado.
+                                  </p>
+                                ) : (
+                                  filteredClients.map((client) => {
+                                    const isSelected = selectedClientId === client.id
+                                    return (
+                                      <Card
+                                        key={client.id}
+                                        className={`cursor-pointer transition-all ${
+                                          isSelected
+                                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                            : 'hover:border-primary/40 hover:bg-secondary/50'
+                                        }`}
+                                        onClick={() => handleSelectClient(client)}
+                                      >
+                                        <div className="flex items-center gap-3 p-3">
+                                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                                            <User className="h-5 w-5 text-muted-foreground" />
+                                          </div>
+                                          <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold text-foreground">
+                                              {client.name}
+                                            </p>
+                                            <p className="truncate text-xs text-muted-foreground">
+                                              {[
+                                                client.nif && `NIF: ${client.nif}`,
+                                                client.phone,
+                                                client.address,
+                                              ]
+                                                .filter(Boolean)
+                                                .join(' · ')}
+                                            </p>
+                                          </div>
+                                          {isSelected && (
+                                            <Check className="h-5 w-5 shrink-0 text-primary" />
+                                          )}
+                                        </div>
+                                      </Card>
+                                    )
+                                  })
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {(!savedClients.length || !selectedClientId) && (
+                            <p className="text-sm text-muted-foreground">
+                              {!savedClients.length
+                                ? 'Nenhum cliente registado. Use o formulário manual abaixo.'
+                                : 'Selecione um cliente acima ou use o formulário manual.'}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <Label className="text-sm font-semibold">Nome do cliente</Label>
+                          <Input
+                            value={quote.manualClient || ''}
+                            onChange={(e) => updateQuote({ manualClient: e.target.value })}
+                            placeholder="Digite o nome do cliente"
+                            className="mt-1"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -991,7 +1071,9 @@ export function QuoteEditor({ initialQuote, onBack, onExportPdf }: QuoteEditorPr
                         <div className="min-w-0">
                           <p className="text-xs text-muted-foreground">Empresa</p>
                           <p className="truncate font-medium text-foreground">
-                            {quote.company.name || 'Nao definida'}
+                            {quote.companyType === 'existing'
+                              ? quote.company?.name || 'Nao definida'
+                              : quote.manualCompany || 'Nao definida'}
                           </p>
                         </div>
                       </div>

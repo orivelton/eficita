@@ -54,7 +54,7 @@ export async function login(
   password: string,
 ): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
   try {
-    const resp = await fetch('/api/users/login', {
+    const resp = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),

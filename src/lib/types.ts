@@ -87,8 +87,12 @@ export interface Quote {
   createdAt: string
   validUntil: string
   notes: string
-  company: CompanyData
-  client: ClientData
+  companyType: 'existing' | 'manual'
+  company?: SavedCompany
+  manualCompany?: string
+  clientType: 'existing' | 'manual'
+  client?: SavedClient
+  manualClient?: string
   items: QuoteItem[]
   updatedAt: string
   status: QuoteStatus

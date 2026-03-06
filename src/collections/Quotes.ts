@@ -11,17 +11,17 @@ export const Quotes: CollectionConfig = {
     read: ({ req: { user } }) => {
       const u = user as any
       if (!u) return false
-      if (u.email === 'orivelton10@gmail.com') return true
+      if (u?.collection === 'users') return true
       return { createdBy: { equals: u.id } }
     },
     update: ({ req: { user }, id }) => {
       const u = user as any
-      if (u.email === 'orivelton10@gmail.com') return true
+      if (u?.collection === 'users') return true
       return { createdBy: { equals: u?.id } }
     },
     delete: ({ req: { user }, id }) => {
       const u = user as any
-      if (u.email === 'orivelton10@gmail.com') return true
+      if (u?.collection === 'users') return true
       return { createdBy: { equals: u?.id } }
     },
   },
@@ -32,14 +32,48 @@ export const Quotes: CollectionConfig = {
     { name: 'validUntil', type: 'date' },
     { name: 'notes', type: 'textarea' },
     {
+      name: 'companyType',
+      type: 'select',
+      options: ['existing', 'manual'],
+      defaultValue: 'existing',
+      required: true,
+    },
+    {
       name: 'company',
       type: 'relationship',
-      relationTo: 'companies' as any,
+      relationTo: 'companies',
+      admin: {
+        condition: (data) => data.companyType === 'existing',
+      },
+    },
+    {
+      name: 'manualCompany',
+      type: 'text',
+      admin: {
+        condition: (data) => data.companyType === 'manual',
+      },
+    },
+    {
+      name: 'clientType',
+      type: 'select',
+      options: ['existing', 'manual'],
+      defaultValue: 'existing',
+      required: true,
     },
     {
       name: 'client',
       type: 'relationship',
-      relationTo: 'clients' as any,
+      relationTo: 'clients',
+      admin: {
+        condition: (data) => data.clientType === 'existing',
+      },
+    },
+    {
+      name: 'manualClient',
+      type: 'text',
+      admin: {
+        condition: (data) => data.clientType === 'manual',
+      },
     },
     {
       name: 'items',
@@ -77,7 +111,7 @@ export const Quotes: CollectionConfig = {
     {
       name: 'createdBy',
       type: 'relationship',
-      relationTo: 'users',
+      relationTo: 'customers',
     },
   ],
 }

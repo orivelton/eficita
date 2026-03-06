@@ -208,12 +208,12 @@ export function saveQuotes(quotes: Quote[]): void {
 
 export async function saveQuote(quote: Quote): Promise<Quote[]> {
   // upsert via API: if id exists update, else create
-  if (quote.id) {
-    await quotesApi.updateQuote(quote.id, quote as any)
-  } else {
-    const created = await quotesApi.createQuote(quote as any)
-    quote = created
-  }
+  // if (quote.id && quote.createdAt) {
+  //   await quotesApi.updateQuote(quote.id, quote as any)
+  // } else {
+  const created = await quotesApi.createQuote(quote as any)
+  quote = created
+  // }
   // refresh local cache
   try {
     return await quotesApi.fetchQuotes()
@@ -312,8 +312,15 @@ export interface ValidationErrors {
 export function validateQuote(quote: Quote): ValidationErrors {
   const errors: ValidationErrors = {}
 
-  if (!quote.client.name.trim()) {
-    errors.clientName = 'Nome do cliente é obrigatório'
+  // Validate client
+  if (quote.clientType === 'existing') {
+    if (!quote.client?.name?.trim()) {
+      errors.clientName = 'Cliente é obrigatório'
+    }
+  } else {
+    if (!quote.manualClient?.trim()) {
+      errors.clientName = 'Nome do cliente é obrigatório'
+    }
   }
 
   if (quote.items.length === 0) {

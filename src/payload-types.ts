@@ -64,10 +64,12 @@ export type SupportedTimezones =
 export interface Config {
   auth: {
     users: UserAuthOperations;
+    customers: CustomerAuthOperations;
   };
   blocks: {};
   collections: {
     users: User;
+    customers: Customer;
     media: Media;
     companies: Company;
     clients: Client;
@@ -84,6 +86,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     companies: CompaniesSelect<false> | CompaniesSelect<true>;
     clients: ClientsSelect<false> | ClientsSelect<true>;
@@ -104,13 +107,31 @@ export interface Config {
   globals: {};
   globalsSelect: {};
   locale: null;
-  user: User;
+  user: User | Customer;
   jobs: {
     tasks: unknown;
     workflows: unknown;
   };
 }
 export interface UserAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
+}
+export interface CustomerAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -155,6 +176,32 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: number;
+  name?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'customers';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
@@ -186,7 +233,7 @@ export interface Company {
   iban?: string | null;
   logo?: (number | null) | Media;
   primaryColor?: string | null;
-  createdBy?: (number | null) | User;
+  createdBy?: (number | null) | Customer;
   updatedAt: string;
   createdAt: string;
 }
@@ -202,7 +249,7 @@ export interface Client {
   phone?: string | null;
   email?: string | null;
   workAddress?: string | null;
-  createdBy?: (number | null) | User;
+  createdBy?: (number | null) | Customer;
   updatedAt: string;
   createdAt: string;
 }
@@ -217,8 +264,12 @@ export interface Quote {
   createdAt: string;
   validUntil?: string | null;
   notes?: string | null;
+  companyType: 'existing' | 'manual';
   company?: (number | null) | Company;
+  manualCompany?: string | null;
+  clientType: 'existing' | 'manual';
   client?: (number | null) | Client;
+  manualClient?: string | null;
   items?:
     | {
         serviceName?: string | null;
@@ -241,7 +292,7 @@ export interface Quote {
       }[]
     | null;
   templateId?: string | null;
-  createdBy?: (number | null) | User;
+  createdBy?: (number | null) | Customer;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -252,7 +303,7 @@ export interface NotesTemplate {
   name: string;
   content: string;
   category: 'geral' | 'pagamento' | 'prazo' | 'garantia' | 'material' | 'outro';
-  createdBy?: (number | null) | User;
+  createdBy?: (number | null) | Customer;
   createdAt: string;
   updatedAt: string;
 }
@@ -276,7 +327,7 @@ export interface ServiceTemplate {
   unit: string;
   unitPrice: number;
   vatPercentage: number;
-  createdBy?: (number | null) | User;
+  createdBy?: (number | null) | Customer;
   createdAt: string;
   updatedAt: string;
 }
@@ -294,7 +345,7 @@ export interface Setting {
   quoteValidity?: number | null;
   companyDefaultColor?: string | null;
   defaultTemplate?: string | null;
-  createdBy?: (number | null) | User;
+  createdBy?: (number | null) | Customer;
   updatedAt: string;
   createdAt: string;
 }
@@ -309,7 +360,7 @@ export interface Notification {
   message?: string | null;
   read?: boolean | null;
   createdAt: string;
-  createdBy?: (number | null) | User;
+  createdBy?: (number | null) | Customer;
   updatedAt: string;
 }
 /**
@@ -339,6 +390,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
       } | null)
     | ({
         relationTo: 'media';
@@ -373,10 +428,15 @@ export interface PayloadLockedDocument {
         value: number | Notification;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'users';
-    value: number | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: number | User;
+      }
+    | {
+        relationTo: 'customers';
+        value: number | Customer;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -386,10 +446,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: number;
-  user: {
-    relationTo: 'users';
-    value: number | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: number | User;
+      }
+    | {
+        relationTo: 'customers';
+        value: number | Customer;
+      };
   key?: string | null;
   value?:
     | {
@@ -419,6 +484,29 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers_select".
+ */
+export interface CustomersSelect<T extends boolean = true> {
+  name?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -496,8 +584,12 @@ export interface QuotesSelect<T extends boolean = true> {
   createdAt?: T;
   validUntil?: T;
   notes?: T;
+  companyType?: T;
   company?: T;
+  manualCompany?: T;
+  clientType?: T;
   client?: T;
+  manualClient?: T;
   items?:
     | T
     | {

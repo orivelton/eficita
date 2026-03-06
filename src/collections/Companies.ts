@@ -12,17 +12,17 @@ export const Companies: CollectionConfig = {
       const u = user as any
       if (!u) return false
 
-      if (u.email === 'orivelton10@gmail.com') return true
+      if (u?.collection === 'users') return true
       return { createdBy: { equals: u.id } }
     },
     update: ({ req: { user }, id }) => {
       const u = user as any
-      if (u.email === 'orivelton10@gmail.com') return true
+      if (u?.collection === 'users') return true
       return { createdBy: { equals: u?.id } }
     },
     delete: ({ req: { user }, id }) => {
       const u = user as any
-      if (u.email === 'orivelton10@gmail.com') return true
+      if (u?.collection === 'users') return true
       return { createdBy: { equals: u?.id } }
     },
   },
@@ -42,7 +42,7 @@ export const Companies: CollectionConfig = {
     {
       name: 'createdBy',
       type: 'relationship',
-      relationTo: 'users',
+      relationTo: 'customers',
     },
   ],
 }

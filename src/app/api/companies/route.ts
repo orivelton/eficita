@@ -7,7 +7,7 @@ async function getUserFromHeader(req: NextRequest) {
   const id = req.headers.get('x-user-id')
   if (!id) return null
   const payload = await getPayload({ config })
-  return payload.findByID({ collection: 'users', id, depth: 0 })
+  return payload.findByID({ collection: 'customers', id, depth: 0 })
 }
 
 export async function GET(req: NextRequest) {
@@ -49,6 +49,26 @@ export async function PUT(req: NextRequest) {
   try {
     const { id, ...data } = await req.json()
     const payload = await getPayload({ config })
+    const user = await getUserFromHeader(req)
+
+    // Check if user can update this company
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // If not admin, check if user owns the company
+    if (!(user as any)?.roles?.includes('admin')) {
+      const existingCompany = await payload.findByID({
+        collection: 'companies',
+        id,
+        depth: 0,
+      } as any)
+
+      if (!existingCompany || (existingCompany as any).created_by_id !== user.id) {
+        return NextResponse.json({ error: 'Not Found' }, { status: 404 })
+      }
+    }
+
     const updated = await payload.update({
       collection: 'companies',
       id,
@@ -65,6 +85,26 @@ export async function DELETE(req: NextRequest) {
   try {
     const { id } = await req.json()
     const payload = await getPayload({ config })
+    const user = await getUserFromHeader(req)
+
+    // Check if user can delete this company
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // If not admin, check if user owns the company
+    if (!(user as any)?.roles?.includes('admin')) {
+      const existingCompany = await payload.findByID({
+        collection: 'companies',
+        id,
+        depth: 0,
+      } as any)
+
+      if (!existingCompany || (existingCompany as any).created_by_id !== user.id) {
+        return NextResponse.json({ error: 'Not Found' }, { status: 404 })
+      }
+    }
+
     await payload.delete({ collection: 'companies', id } as any)
     return NextResponse.json({ success: true })
   } catch (err: any) {

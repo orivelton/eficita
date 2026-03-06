@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   try {
     const payload = await getPayload({ config })
     const user = (await payload.findByID({
-      collection: 'users',
+      collection: 'customers',
       id: req.headers.get('x-user-id') || '',
     })) as any
     const docs = await payload.find({
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const data = await req.json()
     const payload = await getPayload({ config })
     const user = (await payload.findByID({
-      collection: 'users',
+      collection: 'customers',
       id: req.headers.get('x-user-id') || '',
     })) as any
     const created = await payload.create({

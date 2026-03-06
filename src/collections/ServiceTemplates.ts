@@ -11,17 +11,17 @@ export const ServiceTemplates: CollectionConfig = {
     read: ({ req: { user } }) => {
       const u = user as any
       if (!u) return false
-      if (u.email === 'orivelton10@gmail.com') return true
+      if (u?.collection === 'users') return true
       return { createdBy: { equals: u.id } }
     },
     update: ({ req: { user }, id }) => {
       const u = user as any
-      if (u.email === 'orivelton10@gmail.com') return true
+      if (u?.collection === 'users') return true
       return { createdBy: { equals: u?.id } }
     },
     delete: ({ req: { user }, id }) => {
       const u = user as any
-      if (u.email === 'orivelton10@gmail.com') return true
+      if (u?.collection === 'users') return true
       return { createdBy: { equals: u?.id } }
     },
   },
@@ -49,7 +49,7 @@ export const ServiceTemplates: CollectionConfig = {
     {
       name: 'createdBy',
       type: 'relationship',
-      relationTo: 'users',
+      relationTo: 'customers',
     },
     { name: 'createdAt', type: 'date', defaultValue: () => new Date().toISOString() },
     { name: 'updatedAt', type: 'date', defaultValue: () => new Date().toISOString() },

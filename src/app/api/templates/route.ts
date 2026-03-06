@@ -7,7 +7,7 @@ async function getUserFromHeader(req: NextRequest) {
   const id = req.headers.get('x-user-id')
   if (!id) return null
   const payload = await getPayload({ config })
-  return payload.findByID({ collection: 'users', id, depth: 0 })
+  return payload.findByID({ collection: 'customers', id, depth: 0 })
 }
 
 export async function GET(req: NextRequest) {
